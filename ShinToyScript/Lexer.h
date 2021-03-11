@@ -14,7 +14,11 @@ public:
 	std::vector<Token> GenerateTokens();
 
 	Token GenerateNumber();
+	Token GenerateIdentifier();
 
+	bool IsKeyword(std::string str);
+
+	std::string ToLower(std::string str);
 	
 
 private:
@@ -27,6 +31,7 @@ private:
 	//const std::string m_NewLine = "\n";
 	const std::string m_Digit = "0123456789";
 
+	std::vector<std::string> m_Keywords = { "var", "if" };
 
 };
 

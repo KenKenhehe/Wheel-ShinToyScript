@@ -1,0 +1,4 @@
+var b = 10 ^ 4
+var a = 20 + 40
+a + b * a
+var a = var b = var c = 40

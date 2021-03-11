@@ -26,10 +26,16 @@ std::vector<Token> Lexer::GenerateTokens()
 		{
 			Advance();
 		}
+		
 		else if (std::string("\n").find(current_char) != std::string::npos)
 		{
 			tokens.emplace_back(Token::TokenType::NEW_LINE, "+");
 			Advance();
+		}
+		else if (isalpha(current_char))
+		{
+			Token token = GenerateIdentifier();
+			tokens.emplace_back(token);
 		}
 		else if (std::string(m_Digit).find(current_char) != std::string::npos ||
 				std::string(".").find(current_char) != std::string::npos)
@@ -77,6 +83,11 @@ std::vector<Token> Lexer::GenerateTokens()
 			tokens.emplace_back(Token::TokenType::MODULUS, "%");
 			Advance();
 		}
+		else if (std::string("=").find(current_char) != std::string::npos)
+		{
+			tokens.emplace_back(Token::TokenType::EQU, "=");
+			Advance();
+		}
 		else 
 		{
 			std::string errStr = "Invalid character: '";
@@ -87,6 +98,8 @@ std::vector<Token> Lexer::GenerateTokens()
 	}
 	return tokens;
 }
+
+
 
 Token Lexer::GenerateNumber()
 {
@@ -122,4 +135,44 @@ Token Lexer::GenerateNumber()
 	
 
 	return Token(Token::TokenType::NUMBER, numStr);
+}
+
+Token Lexer::GenerateIdentifier()
+{
+	std::string identifierStr;
+	while (current_char != '\0' && 
+		(isalpha(current_char) ||
+		std::string("_").find(current_char) != std::string::npos ||
+		m_Digit.find(current_char) != std::string::npos))
+	{
+		identifierStr += current_char;
+		Advance();
+	}
+
+	if (IsKeyword(identifierStr) == true) 
+	{
+		return Token(Token::TokenType::KEYWORD, identifierStr);
+	}
+
+	return Token(Token::TokenType::IDENTIFIER, identifierStr);
+}
+
+bool Lexer::IsKeyword(std::string str)
+{
+	//std::string lowerStr = ToLower(str);
+	return std::find(m_Keywords.begin(), m_Keywords.end(), str) != m_Keywords.end();
+}
+
+std::string Lexer::ToLower(std::string str)
+{
+	int counter = 0;
+
+	char c;
+	while (str[counter]) {
+		c = str[counter];
+		str[counter] = tolower(c);
+		counter++;
+	}
+
+	return str;
 }

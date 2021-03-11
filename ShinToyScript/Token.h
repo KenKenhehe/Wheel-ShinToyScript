@@ -8,6 +8,8 @@ public:
 	enum class TokenType
 	{
 		NUMBER,
+		IDENTIFIER,
+		KEYWORD,
 		PLUS,
 		MINUS,
 		MUL,
@@ -31,6 +33,8 @@ public:
 
 	TokenType GetTokenType() { return m_TokenType; }
 	std::string GetTokenValue() { return m_TokenValue; }
+
+	bool Match(Token::TokenType type, std::string keywordStr);
 
 private:
 	TokenType m_TokenType;

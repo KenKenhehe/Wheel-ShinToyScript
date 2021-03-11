@@ -46,6 +46,16 @@ Value* Intepreter::Visit(Node* node)
 	{
 		return VisitPowerNode(node);
 	}
+
+	else if (strcmp(str, "class VarAssignNode") == 0) 
+	{
+		return VisitVarAssignNode(node);
+	}
+
+	else if (strcmp(str, "class VarAccessNode") == 0)
+	{
+		return VisitVarAccessNode(node);
+	}
 	std::string errStr = "MATH ERROR: " + errorInfo;
 	throw errStr;
 }
@@ -113,6 +123,25 @@ Value* Intepreter::VisitModulusNode(Node* node)
 		Value* result = new NumberValue((int)leftValue % (int)rightValue);
 		return result;
 	}
+}
+
+Value* Intepreter::VisitVarAccessNode(Node* node)
+{
+	std::string varName = ((VarAccessNode*)node)->GetVarName();
+	Value* result = symbles.Get(varName);
+	if (result == nullptr) 
+	{
+		throw "Runtime error: '" + varName + "' is not defined";
+	}
+	return result;
+}
+
+Value* Intepreter::VisitVarAssignNode(Node* node)
+{
+	std::string varName = ((VarAssignNode*)node)->GetVarName();
+	Value* value = Visit(((VarAssignNode*)node)->GetRight());
+	symbles.set(varName, value);
+	return value;
 }
 
 Value* Intepreter::VisitPlusNode(Node* node)

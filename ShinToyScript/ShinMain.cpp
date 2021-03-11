@@ -8,9 +8,11 @@
 #include "Lexer.h"
 #include "Parser.h"
 #include "Intepreter.h"
-//#define LOG_TOKEN 0
+#define LOG_TOKEN 0
 //#define SINGLE_LINE_PROCESS
 void Execute(const std::string& line);
+
+Intepreter intpreter;
 
 int main(int argc, char* argv[])
 {
@@ -18,13 +20,15 @@ int main(int argc, char* argv[])
 	if (argv[1] == nullptr) 
 	{
 		// if command line argument is missing, use the defalut text file to demostrate the calculation
-		file = std::ifstream("D:\\MyOwnPL\\ToyScript\\Arithmitic.txt");
+		file = std::ifstream("D:\\MyOwnPL\\ShinToyScript\\ShinToyScript\\Test\\Syntax.sts");
+	//D:\MyOwnPL\ShinToyScript\ShinToyScript\Test
 	}
 	else 
 	{
 		file = std::ifstream(argv[1]);
 	}
 	std::string line;
+
 
 	while (std::getline(file, line)) 
 	{
@@ -62,9 +66,9 @@ void Execute(const std::string& line)
 #endif // LOG_TOKEN
 
 		Node* tree = parser.Parse();
-		Intepreter intpreter;
+		
 
-		//std::cout << tree->ToString() << "\n";
+		std::cout << tree->ToString() << "\n";
 
 		Value* value = intpreter.Visit(tree);
 

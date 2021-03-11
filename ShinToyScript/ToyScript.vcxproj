@@ -155,6 +155,7 @@
     <ClCompile Include="Intepreter.cpp" />
     <ClCompile Include="Lexer.cpp" />
     <ClCompile Include="Node.cpp" />
+    <ClCompile Include="SymbleTable.cpp" />
     <ClCompile Include="Token.cpp" />
     <ClCompile Include="Parser.cpp" />
     <ClCompile Include="ShinMain.cpp" />
@@ -164,6 +165,7 @@
     <ClInclude Include="Intepreter.h" />
     <ClInclude Include="Lexer.h" />
     <ClInclude Include="Node.h" />
+    <ClInclude Include="SymbleTable.h" />
     <ClInclude Include="Token.h" />
     <ClInclude Include="Parser.h" />
     <ClInclude Include="Values.h" />

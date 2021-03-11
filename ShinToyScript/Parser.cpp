@@ -44,6 +44,28 @@ Node* Parser::Parse()
 
 Node* Parser::Expr()
 {
+	if (m_CurrentToken.Match(Token::TokenType::KEYWORD,std::string("var")) )
+	{
+		Advance();
+		if (m_CurrentToken.GetTokenType() != Token::TokenType::IDENTIFIER) 
+		{
+			std::string errStr = "SYNTAX ERROR: Expected an identifier";
+			throw errStr;
+		}
+		std::string varName = m_CurrentToken.GetTokenValue();
+		Advance();
+		if (m_CurrentToken.GetTokenType() != Token::TokenType::EQU) 
+		{
+			std::string errStr = "SYNTAX ERROR: Expected '='";
+			throw errStr;
+		}
+		Advance();
+		Node* expr = Expr();
+		//Return var assign node
+		Node* result = new VarAssignNode(varName, expr);
+		return result;
+	}
+
 	Node* result = (Node*)Term();
 	while (
 		&m_CurrentToken != nullptr &&
@@ -149,6 +171,12 @@ Node* Parser::Atom()
 	{
 		Advance();
 		Node* result = new NumberNode(currentToken.GetTokenValue());
+		return result;
+	}
+	else if (currentToken.GetTokenType() == Token::TokenType::IDENTIFIER) 
+	{
+		Advance();
+		Node* result = new VarAccessNode(currentToken.GetTokenValue());
 		return result;
 	}
 	else if (currentToken.GetTokenType() == Token::TokenType::L_PAREN)

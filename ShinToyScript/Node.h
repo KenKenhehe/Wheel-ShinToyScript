@@ -7,23 +7,23 @@ public:
 	virtual const char* ToCstr() = 0;
 };
 
-class NumberNode : public Node 
+class NumberNode : public Node
 {
 public:
-	NumberNode(std::string value) : m_Value(value){}
+	NumberNode(std::string value) : m_Value(value) {}
 
-	 std::string ToString() override { return m_Value; }
-	 const char* ToCstr() override { return m_Value.c_str(); }
+	std::string ToString() override { return m_Value; }
+	const char* ToCstr() override { return m_Value.c_str(); }
 
 	std::string GetValue() { return m_Value; }
 private:
 	std::string m_Value;
 };
 
-class AddNode : public Node 
+class AddNode : public Node
 {
 public:
-	AddNode(Node* left, Node* right) : 
+	AddNode(Node* left, Node* right) :
 		m_Left(left), m_Right(right) {}
 
 	Node* GetLeft() { return m_Left; }
@@ -103,10 +103,10 @@ private:
 	Node* m_Right;
 };
 
-class PlusNode : public Node 
+class PlusNode : public Node
 {
 public:
-	PlusNode(Node* node) : m_Node(node){}
+	PlusNode(Node* node) : m_Node(node) {}
 
 	std::string ToString() override { return "(+" + m_Node->ToString() + ")"; }
 	const char* ToCstr() override { return ("(+" + m_Node->ToString() + ")").c_str(); }
@@ -122,13 +122,13 @@ public:
 
 	std::string ToString() override { return "(-" + m_Node->ToString() + ")"; }
 	const char* ToCstr() override { return ("(-" + m_Node->ToString() + ")").c_str(); }
-	
+
 	Node* GetNode() { return m_Node; }
-private:								
+private:
 	Node* m_Node;
 };
 
-class PowerNode : public Node 
+class PowerNode : public Node
 {
 public:
 	PowerNode(Node* left, Node* right) :
@@ -143,5 +143,36 @@ public:
 private:
 	Node* m_Left;
 	Node* m_Right;
+};
+
+class VarAssignNode : public Node
+{
+public:
+	VarAssignNode(std::string varName, Node* right) :
+		m_VarName(varName), m_Right(right) {}
+
+	std::string ToString() override { return "(" + m_VarName + " = " + m_Right->ToString() + ")"; }
+	const char* ToCstr() override { return ("(" + m_VarName + " = " + m_Right->ToString() + ")").c_str(); }
+
+	std::string GetVarName() { return m_VarName; }
+	Node* GetRight() { return m_Right; }
+
+private:
+	std::string m_VarName;
+	Node* m_Right;
+};
+
+
+class VarAccessNode : public Node
+{
+public:
+	VarAccessNode(std::string varName) : m_VarName(varName) {}
+
+	std::string ToString() override { return m_VarName; }
+	const char* ToCstr() override { return m_VarName.c_str(); }
+
+	std::string GetVarName() { return m_VarName; }
+private:
+	std::string m_VarName;
 };
 

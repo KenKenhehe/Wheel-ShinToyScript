@@ -56,8 +56,23 @@ std::string Token::mapToken(TokenType id)
 	{
 		return "NEW_LINE";
 	}
+	else if (id == TokenType::KEYWORD) 
+	{
+		return "KEYWORD";
+	}
+	else if (id == TokenType::IDENTIFIER) 
+	{
+		return "IDENTIFIER";
+	}
 	else 
 	{
 		return "NONE";
 	}
+}
+
+bool Token::Match(Token::TokenType type, std::string keywordStr)
+{
+	return GetTokenType() == type && 
+		GetTokenValue() == keywordStr;
+		
 }
