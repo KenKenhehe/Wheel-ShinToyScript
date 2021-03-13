@@ -177,6 +177,12 @@ Node* Parser::Atom()
 	{
 		Advance();
 		Node* result = new VarAccessNode(currentToken.GetTokenValue());
+		if (m_CurrentToken.GetTokenType() == Token::TokenType::EQU) 
+		{
+			Advance();
+			Node* expr = Expr();
+			result = new VarAssignNode(result, expr);
+		}
 		return result;
 	}
 	else if (currentToken.GetTokenType() == Token::TokenType::L_PAREN)

@@ -151,15 +151,21 @@ public:
 	VarAssignNode(std::string varName, Node* right) :
 		m_VarName(varName), m_Right(right) {}
 
+	VarAssignNode(Node* leftValue, Node* right): 
+		m_LeftValue(leftValue), m_Right(right) {}
+
 	std::string ToString() override { return "(" + m_VarName + " = " + m_Right->ToString() + ")"; }
 	const char* ToCstr() override { return ("(" + m_VarName + " = " + m_Right->ToString() + ")").c_str(); }
 
 	std::string GetVarName() { return m_VarName; }
 	Node* GetRight() { return m_Right; }
 
+	Node* GetLeftValue() { return m_LeftValue; }
+
 private:
 	std::string m_VarName;
 	Node* m_Right;
+	Node* m_LeftValue = nullptr;
 };
 
 

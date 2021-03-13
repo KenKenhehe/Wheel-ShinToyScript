@@ -8,7 +8,7 @@
 #include "Lexer.h"
 #include "Parser.h"
 #include "Intepreter.h"
-#define LOG_TOKEN 0
+//#define LOG_TOKEN 0
 //#define SINGLE_LINE_PROCESS
 void Execute(const std::string& line);
 
@@ -68,7 +68,7 @@ void Execute(const std::string& line)
 		Node* tree = parser.Parse();
 		
 
-		std::cout << tree->ToString() << "\n";
+		//std::cout << tree->ToString() << "\n";
 
 		Value* value = intpreter.Visit(tree);
 
