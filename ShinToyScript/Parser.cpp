@@ -175,13 +175,17 @@ Node* Parser::Atom()
 	}
 	else if (currentToken.GetTokenType() == Token::TokenType::IDENTIFIER) 
 	{
+		std::string varName = m_CurrentToken.GetTokenValue();
 		Advance();
+		//if variable is already assigned, use the variable name to reassign value
 		Node* result = new VarAccessNode(currentToken.GetTokenValue());
 		if (m_CurrentToken.GetTokenType() == Token::TokenType::EQU) 
 		{
 			Advance();
+			
 			Node* expr = Expr();
 			result = new VarAssignNode(result, expr);
+			((VarAssignNode*)result)->SetVarName(varName);
 		}
 		return result;
 	}

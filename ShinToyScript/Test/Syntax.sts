@@ -1,4 +1,7 @@
-var b = 10 ^ 4
+var a = 10 ^ 4
+var b = 10 ^ 3
 b = 10
 b = 30
+a
 b
+null

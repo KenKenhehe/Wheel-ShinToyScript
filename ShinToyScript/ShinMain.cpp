@@ -10,18 +10,19 @@
 #include "Intepreter.h"
 //#define LOG_TOKEN 0
 //#define SINGLE_LINE_PROCESS
+#define SHELL_COMMAND
 void Execute(const std::string& line);
 
 Intepreter intpreter;
-
+Value* value;
 int main(int argc, char* argv[])
 {
+	intpreter.SetSymbles();
 	std::ifstream file;
 	if (argv[1] == nullptr) 
 	{
 		// if command line argument is missing, use the defalut text file to demostrate the calculation
 		file = std::ifstream("D:\\MyOwnPL\\ShinToyScript\\ShinToyScript\\Test\\Syntax.sts");
-	//D:\MyOwnPL\ShinToyScript\ShinToyScript\Test
 	}
 	else 
 	{
@@ -34,8 +35,7 @@ int main(int argc, char* argv[])
 	{
 		Execute(line);
 	}
-
-	int i = 0;
+	delete value;
 
 #ifdef SINGLE_LINE_PROCESS
 
@@ -70,14 +70,15 @@ void Execute(const std::string& line)
 
 		//std::cout << tree->ToString() << "\n";
 
-		Value* value = intpreter.Visit(tree);
-
+		value = intpreter.Visit(tree);
+#ifdef SHELL_COMMAND
 		if (value != nullptr)
 		{
 			std::cout << value->GetValue() << "\n";
 		}
-
+#endif // SHELL_COMMAND
 		delete tree;
+
 	}
 	catch (std::string exp)
 	{

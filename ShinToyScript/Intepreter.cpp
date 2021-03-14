@@ -3,6 +3,11 @@
 #include <typeinfo>
 #include <cmath>
 
+void Intepreter::SetSymbles()
+{
+	symbles.set(std::string("null"), new NumberValue(0));
+}
+
 Value* Intepreter::Visit(Node* node)
 {
 	if (node == nullptr) 

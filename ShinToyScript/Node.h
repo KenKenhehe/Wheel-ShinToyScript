@@ -154,7 +154,14 @@ public:
 	VarAssignNode(Node* leftValue, Node* right): 
 		m_LeftValue(leftValue), m_Right(right) {}
 
-	std::string ToString() override { return "(" + m_VarName + " = " + m_Right->ToString() + ")"; }
+	std::string ToString() override 
+	{ 
+		if(m_VarName.empty() == false)
+			return "(" + m_VarName + " = " + m_Right->ToString() + ")"; 
+		else
+			return "(" + m_Right->ToString() + " = " + m_Right->ToString() + ")";
+
+	}
 	const char* ToCstr() override { return ("(" + m_VarName + " = " + m_Right->ToString() + ")").c_str(); }
 
 	std::string GetVarName() { return m_VarName; }
@@ -162,6 +169,7 @@ public:
 
 	Node* GetLeftValue() { return m_LeftValue; }
 
+	void SetVarName(std::string& varName) { m_VarName = varName; }
 private:
 	std::string m_VarName;
 	Node* m_Right;

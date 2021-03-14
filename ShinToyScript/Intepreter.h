@@ -5,7 +5,7 @@
 class Intepreter
 {
 public:
-
+	void SetSymbles();
 	Value* Visit(Node* node);
 
 	//----------Visit operators------------
