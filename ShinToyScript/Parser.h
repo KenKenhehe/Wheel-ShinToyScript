@@ -12,6 +12,8 @@ public:
 	Node* Parse();
 
 	Node* Expr();
+	Node* ComExpr();
+	Node* ArthExpr();
 	Node* Term();
 	Node* Factor();
 	Node* Atom();

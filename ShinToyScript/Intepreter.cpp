@@ -6,6 +6,9 @@
 void Intepreter::SetSymbles()
 {
 	symbles.set(std::string("null"), new NumberValue(0));
+	symbles.set(std::string("true"), new NumberValue(1));
+	symbles.set(std::string("false"), new NumberValue(0));
+
 }
 
 Value* Intepreter::Visit(Node* node)
@@ -51,7 +54,14 @@ Value* Intepreter::Visit(Node* node)
 	{
 		return VisitPowerNode(node);
 	}
-
+	else if (strcmp(str, "class CompareNode") == 0) 
+	{
+		return VisitCompareNode(node);
+	}
+	else if (strcmp(str, "class NotNode") == 0) 
+	{
+		return VisitNotNode(node);
+	}
 	else if (strcmp(str, "class VarAssignNode") == 0) 
 	{
 		return VisitVarAssignNode(node);
@@ -61,6 +71,8 @@ Value* Intepreter::Visit(Node* node)
 	{
 		return VisitVarAccessNode(node);
 	}
+	
+
 	std::string errStr = "MATH ERROR: " + errorInfo;
 	throw errStr;
 }
@@ -147,6 +159,22 @@ Value* Intepreter::VisitVarAssignNode(Node* node)
 	Value* value = Visit(((VarAssignNode*)node)->GetRight());
 	symbles.set(varName, value);
 	return value;
+}
+
+Value* Intepreter::VisitNotNode(Node* node)
+{
+	Value* value = Visit(((NotNode*)node)->GetNode());
+	return new NumberValue(!(int)(value->GetValue()));
+}
+
+Value* Intepreter::VisitCompareNode(Node* node)
+{
+	Value* leftValue = Visit(((CompareNode*)node)->GetLeft());
+	Value* rightValue = Visit(((CompareNode*)node)->GetRight());
+	std::string op = ((CompareNode*)node)->GetOp();
+	
+	int result = ((NumberValue*)leftValue)->CompareTo(op, rightValue);
+	return new NumberValue(result);
 }
 
 Value* Intepreter::VisitPlusNode(Node* node)

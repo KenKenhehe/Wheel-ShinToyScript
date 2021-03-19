@@ -19,6 +19,12 @@ public:
 		POWER,
 		MODULUS,
 		EQU,
+		EQEQ,
+		NEQU,
+		GT,
+		LT,
+		LTEQ,
+		GTEQ,
 		NEW_LINE,
 		END_OF_FILE
 	};

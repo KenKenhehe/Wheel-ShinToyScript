@@ -190,3 +190,36 @@ private:
 	std::string m_VarName;
 };
 
+
+class NotNode : public Node
+{
+public:
+	NotNode(Node* node) : m_Node(node) {}
+
+	std::string ToString() override { return "(not " + m_Node->ToString() + ")"; }
+	const char* ToCstr() override { return ("(not " + m_Node->ToString() + ")").c_str(); }
+
+	Node* GetNode() { return m_Node; }
+private:
+	Node* m_Node;
+};
+
+class CompareNode : public Node
+{
+public:
+	CompareNode(Node* leftNode, std::string op, Node* rightNode) :
+		m_LeftNode(leftNode),  m_RightNode(rightNode), m_Op(op) {}
+
+	std::string ToString() override { 
+		return "(" + m_LeftNode->ToString() + " " + m_Op + " " + m_RightNode->ToString() + ")"; }
+	const char* ToCstr() override { return ToString().c_str(); }
+
+	Node* GetLeft() { return m_LeftNode; }
+	Node* GetRight() { return m_RightNode; }
+	std::string GetOp() { return m_Op; }
+private:
+	Node* m_LeftNode;
+	Node* m_RightNode;
+	std::string m_Op;
+};
+

@@ -85,8 +85,23 @@ std::vector<Token> Lexer::GenerateTokens()
 		}
 		else if (std::string("=").find(current_char) != std::string::npos)
 		{
-			tokens.emplace_back(Token::TokenType::EQU, "=");
-			Advance();
+			Token token = GenerateEquals();
+			tokens.emplace_back(token);
+		}
+		else if (std::string("!").find(current_char) != std::string::npos)
+		{
+			Token token = GenerateNotEqual();
+			tokens.emplace_back(token);
+		}
+		else if (std::string(">").find(current_char) != std::string::npos)
+		{
+			Token token = GenerateGreaterThan();
+			tokens.emplace_back(token);
+		}
+		else if (std::string("<").find(current_char) != std::string::npos)
+		{
+			Token token = GenerateLessThan();
+			tokens.emplace_back(token);
 		}
 		else 
 		{
@@ -155,6 +170,61 @@ Token Lexer::GenerateIdentifier()
 	}
 
 	return Token(Token::TokenType::IDENTIFIER, identifierStr);
+}
+
+Token Lexer::GenerateEquals()
+{
+	std::string equalStr;
+	int equCount = 0;
+	while (current_char != '\0' && (std::string("=").find(current_char) != std::string::npos)) 
+	{
+		if (equCount >= 2)
+		{
+			break;
+		}
+		equalStr += current_char;
+		equCount += 1;
+		
+		Advance();
+	}
+	if (equalStr.find("==") != std::string::npos) 
+	{
+		return Token(Token::TokenType::EQEQ, equalStr);
+	}
+		
+	return Token(Token::TokenType::EQU, "=");
+}
+
+Token Lexer::GenerateNotEqual()
+{
+	Advance();
+	if (current_char == '=') {
+		Advance();
+		return Token(Token::TokenType::NEQU, "!=");
+	}
+	throw std::string("Expected: '='");
+}
+
+Token Lexer::GenerateGreaterThan()
+{
+	Advance();
+	if (current_char == '=') 
+	{
+		Advance();
+		return Token(Token::TokenType::GTEQ, ">=");
+	}
+	return Token(Token::TokenType::GT, ">");
+}
+
+Token Lexer::GenerateLessThan()
+{
+	Advance();
+	if (current_char == '=') 
+	{
+		Advance();
+		return Token(Token::TokenType::LTEQ, "<=");
+	}
+	return Token(Token::TokenType::LT, "<");
 }
 
 bool Lexer::IsKeyword(std::string str)

@@ -5,6 +5,8 @@ class Value
 public:
 	virtual std::string ToString() = 0;
 	virtual float GetValue() = 0;
+
+
 };
 
 class NumberValue : public Value 
@@ -14,6 +16,8 @@ public:
 	std::string ToString() override { return "Value: " + std::to_string(m_Value); }
 
 	float GetValue() override { return m_Value; }
+
+	int CompareTo(const std::string& op, Value* other);
 private:
 	float m_Value;
 };

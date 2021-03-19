@@ -8,7 +8,7 @@
 #include "Lexer.h"
 #include "Parser.h"
 #include "Intepreter.h"
-//#define LOG_TOKEN 0
+#define LOG_TOKEN 
 //#define SINGLE_LINE_PROCESS
 #define SHELL_COMMAND
 void Execute(const std::string& line);
@@ -17,12 +17,13 @@ Intepreter intpreter;
 Value* value;
 int main(int argc, char* argv[])
 {
+	std::cout <<"Com: " << (1 && 1) << "\n";
 	intpreter.SetSymbles();
 	std::ifstream file;
 	if (argv[1] == nullptr) 
 	{
 		// if command line argument is missing, use the defalut text file to demostrate the calculation
-		file = std::ifstream("D:\\MyOwnPL\\ShinToyScript\\ShinToyScript\\Test\\Syntax.sts");
+		file = std::ifstream("D:\\MyOwnPL\\ShinToyScript\\ShinToyScript\\Test\\Boolean.sts");
 	}
 	else 
 	{

@@ -15,6 +15,10 @@ public:
 
 	Token GenerateNumber();
 	Token GenerateIdentifier();
+	Token GenerateEquals();
+	Token GenerateNotEqual();
+	Token GenerateGreaterThan();
+	Token GenerateLessThan();
 
 	bool IsKeyword(std::string str);
 
@@ -31,7 +35,7 @@ private:
 	//const std::string m_NewLine = "\n";
 	const std::string m_Digit = "0123456789";
 
-	std::vector<std::string> m_Keywords = { "var", "if" };
+	std::vector<std::string> m_Keywords = { "var", "if", "and", "or", "not" };
 
 };
 

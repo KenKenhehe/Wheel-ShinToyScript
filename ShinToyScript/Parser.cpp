@@ -5,7 +5,7 @@ Parser::Parser(std::vector<Token> tokens) : m_Tokens(tokens), m_CurrentToken(Tok
 	//Create space for token to avoid reallocating space, hence increase performance
 	m_Tokens.reserve(tokens.size());
 
-	if (tokens.size() > 0) 
+	if (tokens.size() > 0)
 	{
 		m_CurrentToken = tokens[m_CurrentIndex];
 	}
@@ -13,27 +13,27 @@ Parser::Parser(std::vector<Token> tokens) : m_Tokens(tokens), m_CurrentToken(Tok
 
 void Parser::Advance()
 {
-	if (m_CurrentIndex < m_Tokens.size() - 1) 
+	if (m_CurrentIndex < m_Tokens.size() - 1)
 	{
 		m_CurrentIndex++;
 		m_CurrentToken = m_Tokens[m_CurrentIndex];
 	}
-	else 
+	else
 	{
 		m_CurrentToken = Token(Token::TokenType::END_OF_FILE, "EOF");
 	}
-	
+
 }
 
 Node* Parser::Parse()
 {
-	if (m_CurrentToken.GetTokenType() == Token::TokenType::END_OF_FILE) 
+	if (m_CurrentToken.GetTokenType() == Token::TokenType::END_OF_FILE)
 	{
 		return nullptr;
 	}
 
 	Node* result = Expr();
-	if (m_CurrentToken.GetTokenType() != Token::TokenType::END_OF_FILE) 
+	if (m_CurrentToken.GetTokenType() != Token::TokenType::END_OF_FILE)
 	{
 		throw std::string("SYNTAX ERROR: ") + m_CurrentToken.GetTokenValue();
 	}
@@ -44,17 +44,17 @@ Node* Parser::Parse()
 
 Node* Parser::Expr()
 {
-	if (m_CurrentToken.Match(Token::TokenType::KEYWORD,std::string("var")) )
+	if (m_CurrentToken.Match(Token::TokenType::KEYWORD, std::string("var")))
 	{
 		Advance();
-		if (m_CurrentToken.GetTokenType() != Token::TokenType::IDENTIFIER) 
+		if (m_CurrentToken.GetTokenType() != Token::TokenType::IDENTIFIER)
 		{
 			std::string errStr = "SYNTAX ERROR: Expected an identifier";
 			throw errStr;
 		}
 		std::string varName = m_CurrentToken.GetTokenValue();
 		Advance();
-		if (m_CurrentToken.GetTokenType() != Token::TokenType::EQU) 
+		if (m_CurrentToken.GetTokenType() != Token::TokenType::EQU)
 		{
 			std::string errStr = "SYNTAX ERROR: Expected '='";
 			throw errStr;
@@ -65,7 +65,51 @@ Node* Parser::Expr()
 		Node* result = new VarAssignNode(varName, expr);
 		return result;
 	}
+	Node* result = ComExpr();
+	while (&m_CurrentToken != nullptr &&
+		(m_CurrentToken.Match(Token::TokenType::KEYWORD, "and") ||
+			m_CurrentToken.Match(Token::TokenType::KEYWORD, "or")))
+	{
+		Token currentToken = m_CurrentToken;
+		Advance();
+		Node* right = ComExpr();
+		result = new CompareNode(result, currentToken.GetTokenValue(), right);
+	}
 
+	return result;
+}
+
+Node* Parser::ComExpr()
+{
+	if (m_CurrentToken.Match(Token::TokenType::KEYWORD, "not"))
+	{
+		Advance();
+		Node* result = ComExpr();
+		return new NotNode(result);
+	}
+
+	Node* result = ArthExpr();
+	while (
+		&m_CurrentToken != nullptr &&
+		(m_CurrentToken.GetTokenType() == Token::TokenType::GT ||
+			m_CurrentToken.GetTokenType() == Token::TokenType::LT ||
+			m_CurrentToken.GetTokenType() == Token::TokenType::GTEQ ||
+			m_CurrentToken.GetTokenType() == Token::TokenType::LTEQ ||
+			m_CurrentToken.GetTokenType() == Token::TokenType::NEQU || 
+			m_CurrentToken.GetTokenType() == Token::TokenType::EQEQ)
+		)
+	{
+		Token currentToken = m_CurrentToken;
+		Advance();
+		Node* right = ArthExpr();
+		result = new CompareNode((Node*)result, currentToken.GetTokenValue(), right);
+	}
+
+	return result;
+}
+
+Node* Parser::ArthExpr()
+{
 	Node* result = (Node*)Term();
 	while (
 		&m_CurrentToken != nullptr &&
@@ -96,13 +140,13 @@ Node* Parser::Term()
 {
 	Node* result = Factor();
 	while (
-		&m_CurrentToken != nullptr && 
-		(m_CurrentToken.GetTokenType() == Token::TokenType::MUL || 
+		&m_CurrentToken != nullptr &&
+		(m_CurrentToken.GetTokenType() == Token::TokenType::MUL ||
 			m_CurrentToken.GetTokenType() == Token::TokenType::DIV ||
 			m_CurrentToken.GetTokenType() == Token::TokenType::MODULUS)
 		)
 	{
-		if (m_CurrentToken.GetTokenType() == Token::TokenType::MUL) 
+		if (m_CurrentToken.GetTokenType() == Token::TokenType::MUL)
 		{
 			Advance();
 			Node* right = (Node*)Factor();
@@ -114,7 +158,7 @@ Node* Parser::Term()
 			Node* right = (Node*)Factor();
 			result = new DivideNode((Node*)result, right);
 		}
-		else if (m_CurrentToken.GetTokenType() == Token::TokenType::MODULUS) 
+		else if (m_CurrentToken.GetTokenType() == Token::TokenType::MODULUS)
 		{
 			Advance();
 			Node* right = (Node*)Factor();
@@ -146,14 +190,14 @@ Node* Parser::Factor()
 		Node* result = Power();
 		return result;
 	}
-	std::string errStr =  "SYNTAX ERROR: " + errorInfo; 
+	std::string errStr = "SYNTAX ERROR: " + errorInfo;
 	throw errStr;
 }
 
 Node* Parser::Power()
 {
 	Node* result = Atom();
-	while(&m_CurrentToken != nullptr && 
+	while (&m_CurrentToken != nullptr &&
 		m_CurrentToken.GetTokenType() == Token::TokenType::POWER)
 	{
 		Advance();
@@ -173,16 +217,16 @@ Node* Parser::Atom()
 		Node* result = new NumberNode(currentToken.GetTokenValue());
 		return result;
 	}
-	else if (currentToken.GetTokenType() == Token::TokenType::IDENTIFIER) 
+	else if (currentToken.GetTokenType() == Token::TokenType::IDENTIFIER)
 	{
 		std::string varName = m_CurrentToken.GetTokenValue();
 		Advance();
 		//if variable is already assigned, use the variable name to reassign value
 		Node* result = new VarAccessNode(currentToken.GetTokenValue());
-		if (m_CurrentToken.GetTokenType() == Token::TokenType::EQU) 
+		if (m_CurrentToken.GetTokenType() == Token::TokenType::EQU)
 		{
 			Advance();
-			
+
 			Node* expr = Expr();
 			result = new VarAssignNode(result, expr);
 			((VarAssignNode*)result)->SetVarName(varName);

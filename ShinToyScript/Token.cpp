@@ -64,6 +64,30 @@ std::string Token::mapToken(TokenType id)
 	{
 		return "IDENTIFIER";
 	}
+	else if (id == TokenType::EQEQ) 
+	{
+		return "EQEQ";
+	}
+	else if (id == TokenType::NEQU) 
+	{
+		return "NEQU";
+	}
+	else if (id == TokenType::GT) 
+	{
+		return "GREATER THAN";
+	}
+	else if (id == TokenType::GTEQ)
+	{
+		return "GREATER THAN EQUAL TO";
+	}
+	else if (id == TokenType::LT)
+	{
+		return "LESS THAN";
+	}
+	else if (id == TokenType::LTEQ)
+	{
+		return "LESS THAN EQUAL TO";
+	}
 	else 
 	{
 		return "NONE";
