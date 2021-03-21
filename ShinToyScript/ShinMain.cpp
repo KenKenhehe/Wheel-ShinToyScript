@@ -17,13 +17,13 @@ Intepreter intpreter;
 Value* value;
 int main(int argc, char* argv[])
 {
-	std::cout <<"Com: " << (1 && 1) << "\n";
+	std::cout <<"Com: " << (1 < 10) << "\n";
 	intpreter.SetSymbles();
 	std::ifstream file;
 	if (argv[1] == nullptr) 
 	{
 		// if command line argument is missing, use the defalut text file to demostrate the calculation
-		file = std::ifstream("D:\\MyOwnPL\\ShinToyScript\\ShinToyScript\\Test\\Boolean.sts");
+		file = std::ifstream("D:\\MyOwnPL\\ShinToyScript\\ShinToyScript\\Test\\Function.sts");
 	}
 	else 
 	{
@@ -67,15 +67,13 @@ void Execute(const std::string& line)
 #endif // LOG_TOKEN
 
 		Node* tree = parser.Parse();
-		
-
-		//std::cout << tree->ToString() << "\n";
+		std::cout << tree->ToString() << "\n";
 
 		value = intpreter.Visit(tree);
 #ifdef SHELL_COMMAND
 		if (value != nullptr)
 		{
-			std::cout << value->GetValue() << "\n";
+			std::cout <<">>>"<< value->GetValue() << "\n\n";
 		}
 #endif // SHELL_COMMAND
 		delete tree;

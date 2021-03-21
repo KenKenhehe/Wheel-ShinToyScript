@@ -103,6 +103,11 @@ std::vector<Token> Lexer::GenerateTokens()
 			Token token = GenerateLessThan();
 			tokens.emplace_back(token);
 		}
+		else if (std::string(",").find(current_char) != std::string::npos)
+		{
+			Token token = GenerateLessThan();
+			tokens.emplace_back(Token::TokenType::COMMA, ",");
+		}
 		else 
 		{
 			std::string errStr = "Invalid character: '";
@@ -175,6 +180,7 @@ Token Lexer::GenerateIdentifier()
 Token Lexer::GenerateEquals()
 {
 	std::string equalStr;
+	
 	int equCount = 0;
 	while (current_char != '\0' && (std::string("=").find(current_char) != std::string::npos)) 
 	{
@@ -190,6 +196,12 @@ Token Lexer::GenerateEquals()
 	if (equalStr.find("==") != std::string::npos) 
 	{
 		return Token(Token::TokenType::EQEQ, equalStr);
+	}
+
+	if (current_char == '>')
+	{
+		Advance();
+		return Token(Token::TokenType::ARROW, "=>");
 	}
 		
 	return Token(Token::TokenType::EQU, "=");

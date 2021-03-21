@@ -16,8 +16,13 @@ public:
 	Node* ArthExpr();
 	Node* Term();
 	Node* Factor();
-	Node* Atom();
 	Node* Power();
+	Node* Atom();
+	Node* IfExpr();
+	Node* ForExpr();
+	Node* WhileExpr();
+
+
 
 	void Dispose(void* obj);
 private:

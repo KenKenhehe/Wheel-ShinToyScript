@@ -25,6 +25,8 @@ public:
 		LT,
 		LTEQ,
 		GTEQ,
+		COMMA,
+		ARROW,
 		NEW_LINE,
 		END_OF_FILE
 	};

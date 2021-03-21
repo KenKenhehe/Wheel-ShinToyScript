@@ -95,7 +95,7 @@ Node* Parser::ComExpr()
 			m_CurrentToken.GetTokenType() == Token::TokenType::LT ||
 			m_CurrentToken.GetTokenType() == Token::TokenType::GTEQ ||
 			m_CurrentToken.GetTokenType() == Token::TokenType::LTEQ ||
-			m_CurrentToken.GetTokenType() == Token::TokenType::NEQU || 
+			m_CurrentToken.GetTokenType() == Token::TokenType::NEQU ||
 			m_CurrentToken.GetTokenType() == Token::TokenType::EQEQ)
 		)
 	{
@@ -207,6 +207,100 @@ Node* Parser::Power()
 	return result;
 }
 
+Node* Parser::IfExpr()
+{
+	Node* condition = Expr();
+	if (m_CurrentToken.Match(Token::TokenType::KEYWORD, "then") == false)
+	{
+		std::string errStr = "SYNTAX ERROR: expected 'then' after if statement";
+		throw errStr;
+	}
+	std::vector<IfNode::Case> cases;
+	Advance();
+	Node* expr = Expr();
+	Node* elseCase = nullptr;
+	cases.emplace_back(condition, expr);
+
+	while (m_CurrentToken.Match(Token::TokenType::KEYWORD, "elif"))
+	{
+		Advance();
+		Node* condition = Expr();
+		if (m_CurrentToken.Match(Token::TokenType::KEYWORD, "then") == false)
+		{
+			std::string errStr = "SYNTAX ERROR: expected 'then' after if statement";
+			throw errStr;
+		}
+		Advance();
+		Node* expr = Expr();
+		cases.emplace_back(condition, expr);
+	}
+
+	if (m_CurrentToken.Match(Token::TokenType::KEYWORD, "else"))
+	{
+		Advance();
+		elseCase = Expr();
+
+	}
+	return new IfNode(cases, elseCase);
+}
+
+Node* Parser::ForExpr()
+{
+	Node* step = nullptr;
+	//Advance();
+	if (m_CurrentToken.GetTokenType() != Token::TokenType::IDENTIFIER)
+	{
+		std::string errStr = "SYNTAX ERROR: expected a variable name after 'for'";
+		throw errStr;
+	}
+	std::string varName = m_CurrentToken.GetTokenValue();
+	Advance();
+	if (m_CurrentToken.GetTokenType() != Token::TokenType::EQU)
+	{
+		std::string errStr = "SYNTAX ERROR: expected '='";
+		throw errStr;
+	}
+	Advance();
+	
+	Node* start = Expr();
+
+	if (m_CurrentToken.Match(Token::TokenType::KEYWORD, "to") == false) 
+	{
+		std::string errStr = "SYNTAX ERROR: expected 'to' after for statement";
+		throw errStr;
+	}
+	Advance();
+	Node* end = Expr();
+	if (m_CurrentToken.Match(Token::TokenType::KEYWORD, "step") )
+	{
+		Advance();
+		step = Expr();
+	}
+
+	if (m_CurrentToken.Match(Token::TokenType::KEYWORD, "then") == false)
+	{
+		std::string errStr = "SYNTAX ERROR: expected 'then'";
+		throw errStr;
+	}
+	Advance();
+	Node* body = Expr();
+	return new ForNode(varName, start, end, step, body);
+}
+
+Node* Parser::WhileExpr()
+{
+	Node* condition = Expr();
+	if (m_CurrentToken.Match(Token::TokenType::KEYWORD, "then") == false) 
+	{
+		std::string errStr = "SYNTAX ERROR: expected 'then'";
+		throw errStr;
+	}
+	Advance();
+	Node* body = Expr();
+
+	return new WhileNode(condition, body);
+}
+
 Node* Parser::Atom()
 {
 	Token currentToken = m_CurrentToken;
@@ -246,6 +340,24 @@ Node* Parser::Atom()
 			Advance();
 			return expr;
 		}
+	}
+	else if (currentToken.Match(Token::TokenType::KEYWORD, "if"))
+	{
+		Advance();
+		Node* ifExpr = IfExpr();
+		return ifExpr;
+	}
+	else if (currentToken.Match(Token::TokenType::KEYWORD, "for"))
+	{
+		Advance();
+		Node* forExpr = ForExpr();
+		return forExpr;
+	}
+	else if (currentToken.Match(Token::TokenType::KEYWORD, "while"))
+	{
+		Advance();
+		Node* whileExpr = WhileExpr();
+		return whileExpr;
 	}
 
 	std::string errStr = "SYNTAX ERROR: " + errorInfo;

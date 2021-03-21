@@ -35,7 +35,12 @@ private:
 	//const std::string m_NewLine = "\n";
 	const std::string m_Digit = "0123456789";
 
-	std::vector<std::string> m_Keywords = { "var", "if", "and", "or", "not" };
+	//Todo change function defination from function <name>() -> <return type> to <return type> function <name>()
+	std::vector<std::string> m_Keywords = 
+	{ 
+		"var", "if", "and", "or", "not", "then", "elif", "else", "for", "step", "to", "while", 
+		"function"
+	};
 
 };
 

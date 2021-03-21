@@ -13,7 +13,7 @@ void Intepreter::SetSymbles()
 
 Value* Intepreter::Visit(Node* node)
 {
-	if (node == nullptr) 
+	if (node == nullptr)
 	{
 		return nullptr;
 	}
@@ -46,23 +46,23 @@ Value* Intepreter::Visit(Node* node)
 	{
 		return VisitDivideNode(node);
 	}
-	else if (strcmp(str, "class ModulusNode") == 0) 
+	else if (strcmp(str, "class ModulusNode") == 0)
 	{
 		return VisitModulusNode(node);
 	}
-	else if (strcmp(str, "class PowerNode") == 0) 
+	else if (strcmp(str, "class PowerNode") == 0)
 	{
 		return VisitPowerNode(node);
 	}
-	else if (strcmp(str, "class CompareNode") == 0) 
+	else if (strcmp(str, "class CompareNode") == 0)
 	{
 		return VisitCompareNode(node);
 	}
-	else if (strcmp(str, "class NotNode") == 0) 
+	else if (strcmp(str, "class NotNode") == 0)
 	{
 		return VisitNotNode(node);
 	}
-	else if (strcmp(str, "class VarAssignNode") == 0) 
+	else if (strcmp(str, "class VarAssignNode") == 0)
 	{
 		return VisitVarAssignNode(node);
 	}
@@ -71,7 +71,20 @@ Value* Intepreter::Visit(Node* node)
 	{
 		return VisitVarAccessNode(node);
 	}
-	
+
+	else if (strcmp(str, "class IfNode") == 0)
+	{
+		return VisitIfNode(node);
+	}
+
+	else if (strcmp(str, "class ForNode") == 0)
+	{
+		return VisitForNode(node);
+	}
+	else if (strcmp(str, "class WhileNode") == 0)
+	{
+		return VisitWhileNode(node);
+	}
 
 	std::string errStr = "MATH ERROR: " + errorInfo;
 	throw errStr;
@@ -146,7 +159,7 @@ Value* Intepreter::VisitVarAccessNode(Node* node)
 {
 	std::string varName = ((VarAccessNode*)node)->GetVarName();
 	Value* result = symbles.Get(varName);
-	if (result == nullptr) 
+	if (result == nullptr)
 	{
 		throw "Runtime error: '" + varName + "' is not defined";
 	}
@@ -172,9 +185,83 @@ Value* Intepreter::VisitCompareNode(Node* node)
 	Value* leftValue = Visit(((CompareNode*)node)->GetLeft());
 	Value* rightValue = Visit(((CompareNode*)node)->GetRight());
 	std::string op = ((CompareNode*)node)->GetOp();
-	
+
 	int result = ((NumberValue*)leftValue)->CompareTo(op, rightValue);
 	return new NumberValue(result);
+}
+
+Value* Intepreter::VisitIfNode(Node* node)
+{
+	for (auto c : ((IfNode*)node)->GetCases())
+	{
+		Value* conditionValue = Visit(c.condition);
+		int boolValue = (int)((NumberValue*)conditionValue)->GetValue();
+		if (boolValue == 1) 
+		{
+			Value* expressionValue = Visit(c.expression);
+			return expressionValue;
+		}
+	}
+	if (((IfNode*)node)->GetElseCase() != nullptr) 
+	{
+		Node* elseCase = ((IfNode*)node)->GetElseCase();
+		Value* elseValue = Visit(elseCase);
+		return elseValue;
+	}
+	return nullptr;
+}
+
+Value* Intepreter::VisitForNode(Node* node)
+{
+	Value* startValue = Visit(((ForNode*)node)->GetStart());
+	Value* endValue = Visit(((ForNode*)node)->GetEnd());
+	
+	Value* stepValue = nullptr;
+	if (((ForNode*)node)->GetStep() != nullptr)
+	{
+		stepValue = Visit(((ForNode*)node)->GetStep());
+	}
+	else 
+	{
+		stepValue = new NumberValue(1);
+	}
+
+	int indexCount = startValue->GetValue();
+	int indexDiff = stepValue->GetValue();
+	int condition = false;
+	if (stepValue->GetValue() >= 0) 
+	{
+		condition = indexCount < endValue->GetValue();
+	}
+	else 
+	{
+		condition = indexCount > endValue->GetValue();
+	}
+
+	while (condition) 
+	{
+		condition = (stepValue->GetValue() >= 0) ? indexCount < endValue->GetValue() : indexCount > endValue->GetValue();
+		symbles.set(((ForNode*)node)->GetVarName(), new NumberValue(indexCount));
+		indexCount += indexDiff;
+		Visit(((ForNode*)node)->GetExpression());
+	}
+
+	return nullptr;
+}
+
+Value* Intepreter::VisitWhileNode(Node* node)
+{
+	while (true) 
+	{
+		Value* condition = Visit(((WhileNode*)node)->GetCondition());
+		if (((NumberValue*)condition)->GetValue() != 1) 
+		{
+			break;
+		}
+		Visit(((WhileNode*)node)->GetExpression());
+	}
+
+	return nullptr;
 }
 
 Value* Intepreter::VisitPlusNode(Node* node)

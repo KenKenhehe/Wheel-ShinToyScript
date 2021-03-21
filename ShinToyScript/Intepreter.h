@@ -23,8 +23,17 @@ public:
 	Value* VisitVarAccessNode(Node* node);
 	Value* VisitVarAssignNode(Node* node);
 
+	//----------Visit comparision----------
 	Value* VisitNotNode(Node* node);
 	Value* VisitCompareNode(Node* node);
+
+	//----------If Node----------
+	Value* VisitIfNode(Node* node);
+
+	//----------Loop Nodes----------
+	Value* VisitForNode(Node* node);
+	Value* VisitWhileNode(Node* node);
+
 private:
 	SymbleTable symbles;
 	std::string errorInfo;

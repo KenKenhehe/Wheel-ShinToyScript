@@ -1,10 +1,11 @@
 #pragma once
 #include <string>
+#include <vector>
 class Node
 {
 public:
-	virtual std::string ToString() = 0;
-	virtual const char* ToCstr() = 0;
+	virtual std::string ToString() { return ""; }
+	virtual const char* ToCstr() { return ToString().c_str(); }
 };
 
 class NumberNode : public Node
@@ -13,7 +14,6 @@ public:
 	NumberNode(std::string value) : m_Value(value) {}
 
 	std::string ToString() override { return m_Value; }
-	const char* ToCstr() override { return m_Value.c_str(); }
 
 	std::string GetValue() { return m_Value; }
 private:
@@ -30,7 +30,6 @@ public:
 	Node* GetRight() { return m_Right; }
 
 	std::string ToString() override { return "(" + m_Left->ToString() + " + " + m_Right->ToString() + ")"; }
-	const char* ToCstr() override { return ("(" + m_Left->ToString() + " + " + m_Right->ToString() + ")").c_str(); }
 private:
 	Node* m_Left;
 	Node* m_Right;
@@ -46,7 +45,6 @@ public:
 	Node* GetRight() { return m_Right; }
 
 	std::string ToString() override { return "(" + m_Left->ToString() + " - " + m_Right->ToString() + ")"; }
-	const char* ToCstr() override { return ("(" + m_Left->ToString() + " - " + m_Right->ToString() + ")").c_str(); }
 private:
 	Node* m_Left;
 	Node* m_Right;
@@ -62,7 +60,6 @@ public:
 	Node* GetRight() { return m_Right; }
 
 	std::string ToString() override { return "(" + m_Left->ToString() + " * " + m_Right->ToString() + ")"; }
-	const char* ToCstr() override { return ("(" + m_Left->ToString() + " * " + m_Right->ToString() + ")").c_str(); }
 
 private:
 	Node* m_Left;
@@ -79,7 +76,6 @@ public:
 	Node* GetRight() { return m_Right; }
 
 	std::string ToString() override { return "(" + m_Left->ToString() + " / " + m_Right->ToString() + ")"; }
-	const char* ToCstr() override { return ("(" + m_Left->ToString() + " / " + m_Right->ToString() + ")").c_str(); }
 
 private:
 	Node* m_Left;
@@ -96,8 +92,7 @@ public:
 	Node* GetRight() { return m_Right; }
 
 	std::string ToString() override { return "(" + m_Left->ToString() + " % " + m_Right->ToString() + ")"; }
-	const char* ToCstr() override { return ("(" + m_Left->ToString() + " % " + m_Right->ToString() + ")").c_str(); }
-
+	
 private:
 	Node* m_Left;
 	Node* m_Right;
@@ -109,7 +104,6 @@ public:
 	PlusNode(Node* node) : m_Node(node) {}
 
 	std::string ToString() override { return "(+" + m_Node->ToString() + ")"; }
-	const char* ToCstr() override { return ("(+" + m_Node->ToString() + ")").c_str(); }
 	Node* GetNode() { return m_Node; }
 private:
 	Node* m_Node;
@@ -121,8 +115,7 @@ public:
 	MinusNode(Node* node) : m_Node(node) {}
 
 	std::string ToString() override { return "(-" + m_Node->ToString() + ")"; }
-	const char* ToCstr() override { return ("(-" + m_Node->ToString() + ")").c_str(); }
-
+	
 	Node* GetNode() { return m_Node; }
 private:
 	Node* m_Node;
@@ -138,8 +131,7 @@ public:
 	Node* GetRight() { return m_Right; }
 
 	std::string ToString() override { return "(" + m_Left->ToString() + " ^ " + m_Right->ToString() + ")"; }
-	const char* ToCstr() override { return ("(" + m_Left->ToString() + " ^ " + m_Right->ToString() + ")").c_str(); }
-
+	
 private:
 	Node* m_Left;
 	Node* m_Right;
@@ -162,8 +154,7 @@ public:
 			return "(" + m_Right->ToString() + " = " + m_Right->ToString() + ")";
 
 	}
-	const char* ToCstr() override { return ("(" + m_VarName + " = " + m_Right->ToString() + ")").c_str(); }
-
+	
 	std::string GetVarName() { return m_VarName; }
 	Node* GetRight() { return m_Right; }
 
@@ -183,8 +174,7 @@ public:
 	VarAccessNode(std::string varName) : m_VarName(varName) {}
 
 	std::string ToString() override { return m_VarName; }
-	const char* ToCstr() override { return m_VarName.c_str(); }
-
+	
 	std::string GetVarName() { return m_VarName; }
 private:
 	std::string m_VarName;
@@ -197,8 +187,7 @@ public:
 	NotNode(Node* node) : m_Node(node) {}
 
 	std::string ToString() override { return "(not " + m_Node->ToString() + ")"; }
-	const char* ToCstr() override { return ("(not " + m_Node->ToString() + ")").c_str(); }
-
+	
 	Node* GetNode() { return m_Node; }
 private:
 	Node* m_Node;
@@ -212,8 +201,7 @@ public:
 
 	std::string ToString() override { 
 		return "(" + m_LeftNode->ToString() + " " + m_Op + " " + m_RightNode->ToString() + ")"; }
-	const char* ToCstr() override { return ToString().c_str(); }
-
+	
 	Node* GetLeft() { return m_LeftNode; }
 	Node* GetRight() { return m_RightNode; }
 	std::string GetOp() { return m_Op; }
@@ -223,3 +211,67 @@ private:
 	std::string m_Op;
 };
 
+class IfNode : public Node 
+{
+public: 
+	struct Case
+	{
+		Node* condition;
+		Node* expression;
+		Case(Node* cond, Node* expr): expression(expr), condition(cond){}
+	};
+public:
+	IfNode(std::vector<Case> cases, Node* elseCase) : m_Cases(cases), m_ElseCase(elseCase) {}
+
+	std::string ToString() override {
+		return GetCaseListStr();
+	}
+	
+	std::string GetCaseListStr();
+	std::vector<Case> GetCases() { return m_Cases; };
+	Node* GetElseCase() { return m_ElseCase; }
+
+private:
+	std::vector<Case> m_Cases;
+	Node* m_ElseCase;
+};
+
+class ForNode : public Node 
+{
+public:
+	ForNode(std::string varNameNode, Node* startNode, Node* endNode, Node* stepNode, Node* expression):
+		m_VarName(varNameNode), m_StartNode(startNode), m_EndNode(endNode), 
+		m_StepNode(stepNode), m_Expression(expression){}
+
+	//TODO: Implement proper tostring method
+	std::string ToString() override;
+	std::string GetVarName(){ return m_VarName; }
+	Node* GetStart() { return m_StartNode; }
+	Node* GetEnd() { return m_EndNode; }
+	Node* GetStep() { return m_StepNode; }
+	Node* GetExpression() { return m_Expression; }
+
+private:
+	std::string m_VarName;
+	Node* m_StartNode;
+	Node* m_EndNode;
+	Node* m_StepNode;
+	Node* m_Expression;
+};
+
+class WhileNode : public Node 
+{
+public:
+	WhileNode(Node* condition, Node* expression): 
+		m_Condition(condition), m_Expression(expression){}
+	////TODO: Implement proper tostring method
+	std::string ToString() override {
+		return "Condition: " + m_Condition->ToString() + ", expression: " + m_Expression->ToString();
+	}
+	Node* GetCondition() { return m_Condition; }
+	Node* GetExpression() { return m_Expression; }
+
+private:
+	Node* m_Condition;
+	Node* m_Expression;
+};

@@ -88,6 +88,14 @@ std::string Token::mapToken(TokenType id)
 	{
 		return "LESS THAN EQUAL TO";
 	}
+	else if (id == TokenType::ARROW) 
+	{
+		return "ARROW";
+	}
+	else if (id == TokenType::COMMA) 
+	{
+		return "COMMA";
+	}
 	else 
 	{
 		return "NONE";
