@@ -18,7 +18,7 @@ Value* Intepreter::Visit(Node* node)
 		return nullptr;
 	}
 	const char* str = typeid(*node).name();
-	if (strcmp(str, "class NumberNode") == 0)
+	if (strcmp(str, "class DataNode") == 0)
 	{
 		return VisitNumberNode(node);
 	}
@@ -85,6 +85,14 @@ Value* Intepreter::Visit(Node* node)
 	{
 		return VisitWhileNode(node);
 	}
+	else if (strcmp(str, "class FunctionDefNode") == 0) 
+	{
+		return VisitFuncDefNode(node);
+	}
+	else if (strcmp(str, "class FunctionCallNode") == 0)
+	{
+		return VisitCallNode(node);
+	}
 
 	std::string errStr = "MATH ERROR: " + errorInfo;
 	throw errStr;
@@ -92,67 +100,75 @@ Value* Intepreter::Visit(Node* node)
 
 Value* Intepreter::VisitNumberNode(Node* node)
 {
-	float value = atof(((NumberNode*)node)->GetValue().c_str());
+	float value = std::stof(((DataNode*)node)->GetValue());
 	Value* num = new NumberValue(value);
 	return num;
 }
 
 Value* Intepreter::VisitAddNode(Node* node)
 {
-	float leftValue = Visit(((AddNode*)node)->GetLeft())->GetValue();
-	float rightValue = Visit(((AddNode*)node)->GetRight())->GetValue();
+	Value* left = Visit(((AddNode*)node)->GetLeft());
+	Value* right = Visit(((AddNode*)node)->GetRight());
 
-	Value* result = new NumberValue(leftValue + rightValue);
+	float computeResult = ((NumberValue*)left)->ComputeWith("+", right);
+
+	Value* result = new NumberValue(computeResult);
 	return result;
 }
 
 Value* Intepreter::VisitSubtractNode(Node* node)
 {
-	float leftValue = Visit(((SubtractNode*)node)->GetLeft())->GetValue();
-	float rightValue = Visit(((SubtractNode*)node)->GetRight())->GetValue();
 
-	Value* result = new NumberValue(leftValue - rightValue);
+	Value* left = Visit(((SubtractNode*)node)->GetLeft());
+	Value* right = Visit(((SubtractNode*)node)->GetRight());
+
+	float computeResult = ((NumberValue*)left)->ComputeWith("-", right);
+
+
+	Value* result = new NumberValue(computeResult);
 	return result;
 }
 
 Value* Intepreter::VisitMultiplyNode(Node* node)
 {
-	float leftValue = Visit(((MultiplyNode*)node)->GetLeft())->GetValue();
-	float rightValue = Visit(((MultiplyNode*)node)->GetRight())->GetValue();
+	Value* left = Visit(((MultiplyNode*)node)->GetLeft());
+	Value* right = Visit(((MultiplyNode*)node)->GetRight());
 
-	Value* result = new NumberValue(leftValue * rightValue);
+	float computeResult = ((NumberValue*)left)->ComputeWith("*", right);
+
+
+	Value* result = new NumberValue(computeResult);
 	return result;
 }
 
 Value* Intepreter::VisitDivideNode(Node* node)
 {
-	float leftValue = Visit(((DivideNode*)node)->GetLeft())->GetValue();
-	float rightValue = Visit(((DivideNode*)node)->GetRight())->GetValue();
-	if (rightValue == 0)
+	Value* left = Visit(((MultiplyNode*)node)->GetLeft());
+	Value* right = Visit(((MultiplyNode*)node)->GetRight());
+
+	float computeResult = ((NumberValue*)left)->ComputeWith("/", right);
+
+	Value* result = new NumberValue(computeResult);
+	if (std::stof(right->GetValue()) == 0)
 	{
 		errorInfo = "can not divide by zero";
 		throw std::string("Math error: ") + errorInfo;
 	}
 	else
 	{
-		Value* result = new NumberValue(leftValue / rightValue);
 		return result;
 	}
 }
 
 Value* Intepreter::VisitModulusNode(Node* node)
 {
-	float leftValue = Visit(((ModulusNode*)node)->GetLeft())->GetValue();
-	float rightValue = Visit(((ModulusNode*)node)->GetRight())->GetValue();
-	if (rightValue == 0)
-	{
-		errorInfo = "can not divide by zero";
-	}
-	else
-	{
-		Value* result = new NumberValue((int)leftValue % (int)rightValue);
-		return result;
-	}
+	Value* left = Visit(((ModulusNode*)node)->GetLeft());
+	Value* right = Visit(((ModulusNode*)node)->GetRight());
+
+	float computeResult = ((NumberValue*)left)->ComputeWith("%", right);
+
+	Value* result = new NumberValue(computeResult);
+	return result;
 }
 
 Value* Intepreter::VisitVarAccessNode(Node* node)
@@ -177,7 +193,7 @@ Value* Intepreter::VisitVarAssignNode(Node* node)
 Value* Intepreter::VisitNotNode(Node* node)
 {
 	Value* value = Visit(((NotNode*)node)->GetNode());
-	return new NumberValue(!(int)(value->GetValue()));
+	return new NumberValue(!std::stoi(value->GetValue()));
 }
 
 Value* Intepreter::VisitCompareNode(Node* node)
@@ -186,7 +202,7 @@ Value* Intepreter::VisitCompareNode(Node* node)
 	Value* rightValue = Visit(((CompareNode*)node)->GetRight());
 	std::string op = ((CompareNode*)node)->GetOp();
 
-	int result = ((NumberValue*)leftValue)->CompareTo(op, rightValue);
+	int result = ((NumberValue*)leftValue)->CompareTo(op, (NumberValue*)rightValue);
 	return new NumberValue(result);
 }
 
@@ -195,14 +211,14 @@ Value* Intepreter::VisitIfNode(Node* node)
 	for (auto c : ((IfNode*)node)->GetCases())
 	{
 		Value* conditionValue = Visit(c.condition);
-		int boolValue = (int)((NumberValue*)conditionValue)->GetValue();
-		if (boolValue == 1) 
+		int boolValue = std::stoi(((NumberValue*)conditionValue)->GetValue());
+		if (boolValue == 1)
 		{
 			Value* expressionValue = Visit(c.expression);
 			return expressionValue;
 		}
 	}
-	if (((IfNode*)node)->GetElseCase() != nullptr) 
+	if (((IfNode*)node)->GetElseCase() != nullptr)
 	{
 		Node* elseCase = ((IfNode*)node)->GetElseCase();
 		Value* elseValue = Visit(elseCase);
@@ -215,33 +231,37 @@ Value* Intepreter::VisitForNode(Node* node)
 {
 	Value* startValue = Visit(((ForNode*)node)->GetStart());
 	Value* endValue = Visit(((ForNode*)node)->GetEnd());
-	
+
 	Value* stepValue = nullptr;
 	if (((ForNode*)node)->GetStep() != nullptr)
 	{
 		stepValue = Visit(((ForNode*)node)->GetStep());
 	}
-	else 
+	else
 	{
 		stepValue = new NumberValue(1);
 	}
 
-	int indexCount = startValue->GetValue();
-	int indexDiff = stepValue->GetValue();
+	int indexCount = std::stoi(startValue->GetValue());
+	int indexDiff = std::stoi(stepValue->GetValue());
 	int condition = false;
-	if (stepValue->GetValue() >= 0) 
+	if (std::stoi(stepValue->GetValue()) >= 0)
 	{
-		condition = indexCount < endValue->GetValue();
+		condition = indexCount < std::stoi(endValue->GetValue());
 	}
-	else 
+	else
 	{
-		condition = indexCount > endValue->GetValue();
+		condition = indexCount > std::stoi(endValue->GetValue());
 	}
 
-	while (condition) 
+	while (condition)
 	{
-		condition = (stepValue->GetValue() >= 0) ? indexCount < endValue->GetValue() : indexCount > endValue->GetValue();
-		symbles.set(((ForNode*)node)->GetVarName(), new NumberValue(indexCount));
+		condition = (std::stoi(stepValue->GetValue()) >= 0) ? 
+			indexCount < std::stoi(endValue->GetValue())
+			: 
+			indexCount > std::stoi(endValue->GetValue());
+
+		symbles.set(((ForNode*)node)->GetVarName(), &NumberValue(indexCount));
 		indexCount += indexDiff;
 		Visit(((ForNode*)node)->GetExpression());
 	}
@@ -251,10 +271,10 @@ Value* Intepreter::VisitForNode(Node* node)
 
 Value* Intepreter::VisitWhileNode(Node* node)
 {
-	while (true) 
+	while (true)
 	{
 		Value* condition = Visit(((WhileNode*)node)->GetCondition());
-		if (((NumberValue*)condition)->GetValue() != 1) 
+		if (std::stoi(((NumberValue*)condition)->GetValue()) != 1)
 		{
 			break;
 		}
@@ -264,25 +284,51 @@ Value* Intepreter::VisitWhileNode(Node* node)
 	return nullptr;
 }
 
+Value* Intepreter::VisitCallNode(Node* node)
+{
+	std::vector<Value*> args;
+	FunctionValue* valueToCall = (FunctionValue*)Visit(((FunctionCallNode*)node)->GetNodeToCall());
+
+	for (auto argNodes : ((FunctionCallNode*)node)->GetArgNodes()) 
+	{
+		args.emplace_back(Visit(argNodes));
+	}
+	return valueToCall->Execute(*this, symbles, args);
+}
+
+Value* Intepreter::VisitFuncDefNode(Node* node)
+{
+	std::string functionName = ((FunctionDefNode*)node)->GetFunctionName();
+	std::vector<std::string> argNames = ((FunctionDefNode*)node)->GetArgs();
+	Node* functionBody = ((FunctionDefNode*)node)->GetBody();
+	FunctionValue* functionValue = new FunctionValue(functionName, functionBody, argNames);
+	symbles.set(functionName, functionValue);
+	return functionValue;
+}
+
 Value* Intepreter::VisitPlusNode(Node* node)
 {
-	float value = Visit(((PlusNode*)node)->GetNode())->GetValue();
+	std::string valueStr = Visit(((PlusNode*)node)->GetNode())->GetValue();
+	float value = std::stof(valueStr);
 	Value* num = new NumberValue(value);
 	return num;
 }
 
 Value* Intepreter::VisitMinusNode(Node* node)
 {
-	float value = Visit(((MinusNode*)node)->GetNode())->GetValue();
+	std::string valueStr = Visit(((PlusNode*)node)->GetNode())->GetValue();
+	float value = std::stof(valueStr);
 	Value* num = new NumberValue(-value);
 	return num;
 }
 
 Value* Intepreter::VisitPowerNode(Node* node)
 {
-	float leftValue = Visit(((PowerNode*)node)->GetLeft())->GetValue();
-	float rightValue = Visit(((PowerNode*)node)->GetRight())->GetValue();
+	std::string left = Visit(((PowerNode*)node)->GetLeft())->GetValue();
+	std::string right = Visit(((PowerNode*)node)->GetRight())->GetValue();
 
+	float leftValue = std::stof(left);
+	float rightValue = std::stof(right);
 	Value* num = new NumberValue(pow(leftValue, rightValue));
 	return num;
 }

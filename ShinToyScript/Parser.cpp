@@ -131,7 +131,6 @@ Node* Parser::ArthExpr()
 		}
 	}
 
-	std::string str = ((Node*)result)->ToString();
 
 	return result;
 }
@@ -196,7 +195,7 @@ Node* Parser::Factor()
 
 Node* Parser::Power()
 {
-	Node* result = Atom();
+	Node* result = CallStatement();
 	while (&m_CurrentToken != nullptr &&
 		m_CurrentToken.GetTokenType() == Token::TokenType::POWER)
 	{
@@ -206,6 +205,108 @@ Node* Parser::Power()
 	}
 	return result;
 }
+
+
+Node* Parser::CallStatement()
+{
+	std::vector<Node*> argNodes;
+	Node* atom = Atom();
+	if (m_CurrentToken.GetTokenType() == Token::TokenType::L_PAREN)
+	{
+		Advance();
+		if (m_CurrentToken.GetTokenType() != Token::TokenType::R_PAREN)
+		{
+			Node* argNode = Expr();
+			argNodes.emplace_back(argNode);
+			while (m_CurrentToken.GetTokenType() == Token::TokenType::COMMA)
+			{
+				Advance();
+				argNode = Expr();
+				argNodes.emplace_back(argNode);
+			}
+			if (m_CurrentToken.GetTokenType() != Token::TokenType::R_PAREN) 
+			{
+				std::string errStr = "SYNTAX ERROR: Expected ')'";
+				throw errStr;
+			}
+			Advance();
+		}
+		return new FunctionCallNode(atom, argNodes);
+	}
+	return atom;
+}
+
+
+Node* Parser::Atom()
+{
+	Token currentToken = m_CurrentToken;
+
+	if (currentToken.GetTokenType() == Token::TokenType::NUMBER)
+	{
+		Advance();
+		Node* result = new DataNode(currentToken.GetTokenValue());
+		return result;
+	}
+	else if (currentToken.GetTokenType() == Token::TokenType::IDENTIFIER)
+	{
+		std::string varName = m_CurrentToken.GetTokenValue();
+		Advance();
+		//if variable is already assigned, use the variable name to reassign value
+		Node* result = new VarAccessNode(currentToken.GetTokenValue());
+		if (m_CurrentToken.GetTokenType() == Token::TokenType::EQU)
+		{
+			Advance();
+
+			Node* expr = Expr();
+			result = new VarAssignNode(result, expr);
+			((VarAssignNode*)result)->SetVarName(varName);
+		}
+		return result;
+	}
+	else if (currentToken.GetTokenType() == Token::TokenType::L_PAREN)
+	{
+		Advance();
+		Node* expr = Expr();
+		if (m_CurrentToken.GetTokenType() != Token::TokenType::R_PAREN)
+		{
+			errorInfo = "Expected ')'";
+		}
+		else
+		{
+			Advance();
+			return expr;
+		}
+	}
+	else if (currentToken.Match(Token::TokenType::KEYWORD, "if"))
+	{
+		Advance();
+		Node* ifExpr = IfExpr();
+		return ifExpr;
+	}
+	else if (currentToken.Match(Token::TokenType::KEYWORD, "for"))
+	{
+		Advance();
+		Node* forExpr = ForExpr();
+		return forExpr;
+	}
+	else if (currentToken.Match(Token::TokenType::KEYWORD, "while"))
+	{
+		Advance();
+		Node* whileExpr = WhileExpr();
+		return whileExpr;
+	}
+	else if (currentToken.Match(Token::TokenType::KEYWORD, "function"))
+	{
+		Advance();
+		Node* funcDef = FuncDef();
+		return funcDef;
+	}
+
+	std::string errStr = "SYNTAX ERROR: " + errorInfo;
+	throw errStr;
+}
+
+
 
 Node* Parser::IfExpr()
 {
@@ -261,17 +362,17 @@ Node* Parser::ForExpr()
 		throw errStr;
 	}
 	Advance();
-	
+
 	Node* start = Expr();
 
-	if (m_CurrentToken.Match(Token::TokenType::KEYWORD, "to") == false) 
+	if (m_CurrentToken.Match(Token::TokenType::KEYWORD, "to") == false)
 	{
 		std::string errStr = "SYNTAX ERROR: expected 'to' after for statement";
 		throw errStr;
 	}
 	Advance();
 	Node* end = Expr();
-	if (m_CurrentToken.Match(Token::TokenType::KEYWORD, "step") )
+	if (m_CurrentToken.Match(Token::TokenType::KEYWORD, "step"))
 	{
 		Advance();
 		step = Expr();
@@ -290,7 +391,7 @@ Node* Parser::ForExpr()
 Node* Parser::WhileExpr()
 {
 	Node* condition = Expr();
-	if (m_CurrentToken.Match(Token::TokenType::KEYWORD, "then") == false) 
+	if (m_CurrentToken.Match(Token::TokenType::KEYWORD, "then") == false)
 	{
 		std::string errStr = "SYNTAX ERROR: expected 'then'";
 		throw errStr;
@@ -301,68 +402,58 @@ Node* Parser::WhileExpr()
 	return new WhileNode(condition, body);
 }
 
-Node* Parser::Atom()
+Node* Parser::FuncDef()
 {
-	Token currentToken = m_CurrentToken;
+	std::vector<std::string> argList;
+	std::string functionName = "<None>";
+	if (m_CurrentToken.GetTokenType() == Token::TokenType::IDENTIFIER)
+	{
+		functionName = m_CurrentToken.GetTokenValue();
+		Advance();
 
-	if (currentToken.GetTokenType() == Token::TokenType::NUMBER)
-	{
-		Advance();
-		Node* result = new NumberNode(currentToken.GetTokenValue());
-		return result;
 	}
-	else if (currentToken.GetTokenType() == Token::TokenType::IDENTIFIER)
+	if (m_CurrentToken.GetTokenType() != Token::TokenType::L_PAREN)
 	{
-		std::string varName = m_CurrentToken.GetTokenValue();
-		Advance();
-		//if variable is already assigned, use the variable name to reassign value
-		Node* result = new VarAccessNode(currentToken.GetTokenValue());
-		if (m_CurrentToken.GetTokenType() == Token::TokenType::EQU)
-		{
-			Advance();
-
-			Node* expr = Expr();
-			result = new VarAssignNode(result, expr);
-			((VarAssignNode*)result)->SetVarName(varName);
-		}
-		return result;
+		std::string errStr = "SYNTAX ERROR: expected '('";
+		throw errStr;
 	}
-	else if (currentToken.GetTokenType() == Token::TokenType::L_PAREN)
+	Advance();
+	if (m_CurrentToken.GetTokenType() == Token::TokenType::IDENTIFIER)
 	{
+		argList.emplace_back(m_CurrentToken.GetTokenValue());
 		Advance();
-		Node* expr = Expr();
-		if (m_CurrentToken.GetTokenType() != Token::TokenType::R_PAREN)
-		{
-			errorInfo = "Expected ')'";
-		}
-		else
-		{
-			Advance();
-			return expr;
-		}
-	}
-	else if (currentToken.Match(Token::TokenType::KEYWORD, "if"))
-	{
-		Advance();
-		Node* ifExpr = IfExpr();
-		return ifExpr;
-	}
-	else if (currentToken.Match(Token::TokenType::KEYWORD, "for"))
-	{
-		Advance();
-		Node* forExpr = ForExpr();
-		return forExpr;
-	}
-	else if (currentToken.Match(Token::TokenType::KEYWORD, "while"))
-	{
-		Advance();
-		Node* whileExpr = WhileExpr();
-		return whileExpr;
 	}
 
-	std::string errStr = "SYNTAX ERROR: " + errorInfo;
-	throw errStr;
+	while ((m_CurrentToken.GetTokenType() == Token::TokenType::COMMA))
+	{
+		Advance();
+		if (m_CurrentToken.GetTokenType() != Token::TokenType::IDENTIFIER)
+		{
+			std::string errStr = "SYNTAX ERROR: expected an identifier";
+			throw errStr;
+		}
+		argList.emplace_back(m_CurrentToken.GetTokenValue());
+
+		Advance();
+	}
+
+	if (m_CurrentToken.GetTokenType() != Token::TokenType::R_PAREN)
+	{
+		std::string errStr = "SYNTAX ERROR: expected ')'";
+		throw errStr;
+	}
+	Advance();
+	if (m_CurrentToken.GetTokenType() != Token::TokenType::ARROW)
+	{
+		std::string errStr = "SYNTAX ERROR: expected '=>'";
+		throw errStr;
+	}
+	Advance();
+	Node* expr = Expr();
+	return new FunctionDefNode(functionName, argList, expr);
 }
+
+
 
 
 

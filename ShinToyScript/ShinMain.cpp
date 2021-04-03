@@ -8,7 +8,7 @@
 #include "Lexer.h"
 #include "Parser.h"
 #include "Intepreter.h"
-#define LOG_TOKEN 
+//#define LOG_TOKEN 
 //#define SINGLE_LINE_PROCESS
 #define SHELL_COMMAND
 void Execute(const std::string& line);
@@ -17,6 +17,10 @@ Intepreter intpreter;
 Value* value;
 int main(int argc, char* argv[])
 {
+	float i = 9;
+	float j = 9;
+
+	std::cout << "Com: " << i + j << "\n";
 	std::cout <<"Com: " << (1 < 10) << "\n";
 	intpreter.SetSymbles();
 	std::ifstream file;

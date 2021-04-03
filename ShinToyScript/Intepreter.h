@@ -34,6 +34,10 @@ public:
 	Value* VisitForNode(Node* node);
 	Value* VisitWhileNode(Node* node);
 
+	//----------Function Nodes----------
+	Value* VisitCallNode(Node* node);
+	Value* VisitFuncDefNode(Node* node);
+
 private:
 	SymbleTable symbles;
 	std::string errorInfo;

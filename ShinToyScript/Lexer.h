@@ -14,6 +14,7 @@ public:
 	std::vector<Token> GenerateTokens();
 
 	Token GenerateNumber();
+	Token GenerateString();
 	Token GenerateIdentifier();
 	Token GenerateEquals();
 	Token GenerateNotEqual();

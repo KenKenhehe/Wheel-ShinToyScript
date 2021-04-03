@@ -8,10 +8,10 @@ public:
 	virtual const char* ToCstr() { return ToString().c_str(); }
 };
 
-class NumberNode : public Node
+class DataNode : public Node
 {
 public:
-	NumberNode(std::string value) : m_Value(value) {}
+	DataNode(std::string value) : m_Value(value) {}
 
 	std::string ToString() override { return m_Value; }
 
@@ -19,6 +19,7 @@ public:
 private:
 	std::string m_Value;
 };
+
 
 class AddNode : public Node
 {
@@ -274,4 +275,33 @@ public:
 private:
 	Node* m_Condition;
 	Node* m_Expression;
+};
+
+class FunctionDefNode: public Node
+{
+public:
+	FunctionDefNode(std::string functionName, std::vector<std::string> args, Node* body):
+		m_FunctionName(functionName), m_Args(args), m_Body(body)
+	{}
+	std::string ToString() override;
+	std::string GetFunctionName() { return m_FunctionName; }
+	std::vector<std::string> GetArgs() { return m_Args; }
+	Node* GetBody() { return m_Body; }
+private:
+	std::string m_FunctionName;
+	std::vector<std::string> m_Args;
+	Node* m_Body;
+};
+
+class FunctionCallNode : public Node 
+{
+public:
+	FunctionCallNode(Node* nodeToCall, std::vector<Node*> argNodes): 
+		m_NodeToCall(nodeToCall), m_ArgNodes(argNodes){}
+	std::string ToString() override;
+	Node* GetNodeToCall() { return m_NodeToCall; }
+	std::vector<Node*> GetArgNodes() { return m_ArgNodes; }
+private:
+	Node* m_NodeToCall;
+	std::vector<Node*> m_ArgNodes;
 };

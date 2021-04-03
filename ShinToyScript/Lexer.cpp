@@ -43,6 +43,11 @@ std::vector<Token> Lexer::GenerateTokens()
 			Token token = GenerateNumber();
 			tokens.emplace_back(token);
 		}
+		else if (std::string("'").find(current_char) != std::string::npos) 
+		{
+			Token token = GenerateString();
+			tokens.emplace_back(token);
+		}
 		else if (std::string("+").find(current_char) != std::string::npos) 
 		{
 			tokens.emplace_back(Token::TokenType::PLUS, "+");
@@ -156,6 +161,21 @@ Token Lexer::GenerateNumber()
 
 	return Token(Token::TokenType::NUMBER, numStr);
 }
+
+Token Lexer::GenerateString()
+{
+	std::string value;
+	while (current_char != '\0' && current_char != (char)"'") 
+	{
+		Advance();
+		value += current_char;
+	}
+	value.pop_back();
+	value.pop_back();
+	return Token(Token::TokenType::STRING, value);
+}
+
+
 
 Token Lexer::GenerateIdentifier()
 {

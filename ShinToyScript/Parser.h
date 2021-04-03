@@ -17,10 +17,12 @@ public:
 	Node* Term();
 	Node* Factor();
 	Node* Power();
+	Node* CallStatement();
 	Node* Atom();
 	Node* IfExpr();
 	Node* ForExpr();
 	Node* WhileExpr();
+	Node* FuncDef();
 
 
 

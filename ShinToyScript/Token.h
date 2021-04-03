@@ -8,6 +8,7 @@ public:
 	enum class TokenType
 	{
 		NUMBER,
+		STRING,
 		IDENTIFIER,
 		KEYWORD,
 		PLUS,

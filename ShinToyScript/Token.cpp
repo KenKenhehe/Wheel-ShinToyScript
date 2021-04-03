@@ -96,6 +96,10 @@ std::string Token::mapToken(TokenType id)
 	{
 		return "COMMA";
 	}
+	else if (id == Token::TokenType::STRING) 
+	{
+		return "STRING";
+	}
 	else 
 	{
 		return "NONE";

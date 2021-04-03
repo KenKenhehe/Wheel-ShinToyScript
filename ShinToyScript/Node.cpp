@@ -27,3 +27,32 @@ std::string ForNode::ToString()
 		m_StartNode->ToString() + ", end: " + m_EndNode->ToString() + 
 		", step: " + stepStr + ", expression: " + m_Expression->ToString();
 }
+
+std::string FunctionDefNode::ToString()
+{
+	std::string argStr;
+	for (auto c = begin(m_Args); c != end(m_Args); ++c) {
+		argStr = argStr + *c + ", ";
+	}
+	argStr.pop_back();
+	argStr.pop_back();
+	std::string str = "Func name: " + m_FunctionName + ", args :(" 
+		+ argStr + ")\nexpression: " + m_Body->ToString();
+
+	return str;
+
+}
+
+std::string FunctionCallNode::ToString()
+{
+	std::string argStr;
+	for (auto c : m_ArgNodes) {
+		argStr = argStr + c->ToString() + ", ";
+	}
+	argStr.pop_back();
+	argStr.pop_back();
+	std::string str = "[Func to call: " + m_NodeToCall->ToString() + ", args :("
+		+ argStr + ")]";
+
+	return str;
+}
