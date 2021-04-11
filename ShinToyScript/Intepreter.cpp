@@ -9,7 +9,11 @@ void Intepreter::SetSymbles()
 	symbles.set(std::string("true"), new NumberValue(1));
 	symbles.set(std::string("false"), new NumberValue(0));
 
+	symbles.set(std::string("print"), new BuiltinFunctionValue(std::string("print")));
+	symbles.set(std::string("input"), new BuiltinFunctionValue(std::string("input")));
 }
+
+
 
 Value* Intepreter::Visit(Node* node)
 {
@@ -18,9 +22,17 @@ Value* Intepreter::Visit(Node* node)
 		return nullptr;
 	}
 	const char* str = typeid(*node).name();
-	if (strcmp(str, "class DataNode") == 0)
+	if (strcmp(str, "class NumberNode") == 0)
 	{
 		return VisitNumberNode(node);
+	}
+	else if (strcmp(str, "class StringNode") == 0)
+	{
+		return VisitStringNode(node);
+	}
+	else if (strcmp(str, "class ListNode") == 0) 
+	{
+		return VisitListNode(node);
 	}
 	else if (strcmp(str, "class PlusNode") == 0)
 	{
@@ -100,9 +112,52 @@ Value* Intepreter::Visit(Node* node)
 
 Value* Intepreter::VisitNumberNode(Node* node)
 {
-	float value = std::stof(((DataNode*)node)->GetValue());
+	float value = std::stof(((NumberNode*)node)->GetValue());
 	Value* num = new NumberValue(value);
 	return num;
+}
+
+Value* Intepreter::VisitStringNode(Node* node)
+{
+	std::string value = ((NumberNode*)node)->GetValue();
+	Value* num = new StringValue(value);
+	return num;
+}
+
+Value* Intepreter::VisitListNode(Node* node)
+{
+	std::vector<Value*> elements;
+	ListNode* listNode = (ListNode*)node;
+	for (auto element : listNode->GetElements()) 
+	{
+		elements.emplace_back(Visit(element));
+	}
+	//static ListValue valueToRet(elements);
+	return new ListValue(elements);
+}
+
+Value* Intepreter::ComputeResult(Value* left, const std::string& op, Value* right)
+{
+	const char* str = typeid(*left).name();
+	const char* strRight = typeid(*right).name();
+	Value* result;
+	if (strcmp(str, "class NumberValue") == 0) {
+		float computeResult = ((NumberValue*)left)->ComputeWith(op, right);
+		result = new NumberValue(computeResult);
+		return result;
+	}
+	else if (strcmp(str, "class StringValue") == 0) 
+	{
+		std::string strResult = ((StringValue*)left)->ComputeWith(op, right);
+		result = new StringValue(strResult);
+		return result;
+	}
+	else if (strcmp(str, "class ListValue") == 0) 
+	{
+		std::vector<Value*> resultList = ((ListValue*)left)->ComputeWith(op, right);
+		return new ListValue(resultList);
+	}
+	return nullptr;
 }
 
 Value* Intepreter::VisitAddNode(Node* node)
@@ -110,9 +165,9 @@ Value* Intepreter::VisitAddNode(Node* node)
 	Value* left = Visit(((AddNode*)node)->GetLeft());
 	Value* right = Visit(((AddNode*)node)->GetRight());
 
-	float computeResult = ((NumberValue*)left)->ComputeWith("+", right);
+	//float computeResult = ((NumberValue*)left)->ComputeWith("+", right);
 
-	Value* result = new NumberValue(computeResult);
+	Value* result = ComputeResult(left, "+", right);
 	return result;
 }
 
@@ -134,10 +189,9 @@ Value* Intepreter::VisitMultiplyNode(Node* node)
 	Value* left = Visit(((MultiplyNode*)node)->GetLeft());
 	Value* right = Visit(((MultiplyNode*)node)->GetRight());
 
-	float computeResult = ((NumberValue*)left)->ComputeWith("*", right);
+	//float computeResult = ((NumberValue*)left)->ComputeWith("*", right);
 
-
-	Value* result = new NumberValue(computeResult);
+	Value* result = ComputeResult(left, "*", right);
 	return result;
 }
 
@@ -305,6 +359,8 @@ Value* Intepreter::VisitFuncDefNode(Node* node)
 	symbles.set(functionName, functionValue);
 	return functionValue;
 }
+
+
 
 Value* Intepreter::VisitPlusNode(Node* node)
 {

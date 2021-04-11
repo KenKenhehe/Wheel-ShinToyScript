@@ -13,15 +13,21 @@ public:
 	virtual std::string ToString() = 0;
 	virtual std::string GetValue() = 0;
 	//virtual std::string GetValue() = 0;
+	//virtual float ComputeWith(const std::string& op, Value* other) = 0;
 };
 
 class NumberValue : public Value 
 {
 public:
 	NumberValue(float value): m_Value(value){}
-	std::string ToString() override { return "Value: " + std::to_string(m_Value); }
+	std::string ToString() override { return "Value: " + GetValue(); }
 
-	std::string GetValue()  { return std::to_string(m_Value); }
+	std::string GetValue()  { 
+		if((int)m_Value == m_Value)
+			return std::to_string((int)m_Value); 
+		else 
+			return std::to_string(m_Value);
+	}
 
 	float GetNumericValue() { return m_Value; }
 
@@ -35,7 +41,7 @@ private:
 class StringValue : public Value 
 {
 public:
-	StringValue(std::string value) : m_Value(value) {}
+	StringValue(std::string& value) : m_Value(value) {}
 	std::string ToString() override { return "Value: " + m_Value; }
 
 	std::string GetValue() override{ return m_Value; }
@@ -45,20 +51,49 @@ private:
 	std::string m_Value;
 };
 
+class ListValue : public Value 
+{
+public:
+	ListValue(std::vector<Value*>& valueElements): m_ValueElements(valueElements) {}
+	std::string ToString() override;
+
+	std::string GetValue() override { return ToString(); }
+	std::vector<Value*> GetValueElements() { return m_ValueElements; }
+
+	std::vector<Value*> ComputeWith(const std::string& op, Value* other);
+private:
+	std::vector<Value*> m_ValueElements;
+	std::string m_Value;
+};
+
 class FunctionValue : public Value 
 {
 public:
-	FunctionValue(std::string value, Node* bodyNode, std::vector<std::string> argNames) : 
+	FunctionValue(std::string& value, Node* bodyNode, std::vector<std::string>& argNames) : 
 		m_Value(value), m_BodyNode(bodyNode), m_ArgNames(argNames) {}
 	std::string ToString() override { return "Function: " + m_Value; }
 
 	std::string GetValue() override { return m_Value; }
 
 	//This is where the programmer-specifed argument are passed in
-	Value* Execute(Intepreter& intepreter, SymbleTable& table, std::vector<Value*> args);
-private:
+	virtual Value* Execute(Intepreter& intepreter, SymbleTable& table, std::vector<Value*>& args);
+protected:
 	std::string m_Value;
 	Node* m_BodyNode;
 	std::vector<std::string> m_ArgNames;
 };
 
+class BuiltinFunctionValue : public FunctionValue 
+{
+	using FunctionValue::FunctionValue;
+public:
+	BuiltinFunctionValue(std::string value) :
+		FunctionValue(value, nullptr, m_ArgNames){}
+
+	Value* Execute(Intepreter& intepreter, SymbleTable& table, std::vector<Value*>& args) override;
+
+	//------Builtin function executions------
+	void InitFuncArgs();
+	Value* ExecutePrint(SymbleTable& table);
+	Value* ExecuteInput(SymbleTable& table);
+};

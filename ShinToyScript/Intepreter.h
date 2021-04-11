@@ -6,10 +6,15 @@ class Intepreter
 {
 public:
 	void SetSymbles();
+	void SetBuiltinFunction();
 	Value* Visit(Node* node);
 
-	//----------Visit operators------------
+	//----------Visit Data------------
 	Value* VisitNumberNode(Node* node);
+	Value* VisitStringNode(Node* node);
+	Value* VisitListNode(Node* node);
+
+	//----------Visit operators------------
 	Value* VisitAddNode(Node* node);
 	Value* VisitSubtractNode(Node* node);
 	Value* VisitMultiplyNode(Node* node);
@@ -37,6 +42,9 @@ public:
 	//----------Function Nodes----------
 	Value* VisitCallNode(Node* node);
 	Value* VisitFuncDefNode(Node* node);
+
+	//----------Utility-----------------
+	Value* ComputeResult(Value* left, const std::string& op, Value* right);
 
 private:
 	SymbleTable symbles;

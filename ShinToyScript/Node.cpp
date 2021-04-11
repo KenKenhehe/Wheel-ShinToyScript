@@ -34,8 +34,10 @@ std::string FunctionDefNode::ToString()
 	for (auto c = begin(m_Args); c != end(m_Args); ++c) {
 		argStr = argStr + *c + ", ";
 	}
-	argStr.pop_back();
-	argStr.pop_back();
+	if (strlen(argStr.c_str()) > 0) {
+		argStr.pop_back();
+		argStr.pop_back();
+	}
 	std::string str = "Func name: " + m_FunctionName + ", args :(" 
 		+ argStr + ")\nexpression: " + m_Body->ToString();
 
@@ -49,10 +51,26 @@ std::string FunctionCallNode::ToString()
 	for (auto c : m_ArgNodes) {
 		argStr = argStr + c->ToString() + ", ";
 	}
-	argStr.pop_back();
-	argStr.pop_back();
+	if (strlen(argStr.c_str()) > 0) {
+		argStr.pop_back();
+		argStr.pop_back();
+	}
 	std::string str = "[Func to call: " + m_NodeToCall->ToString() + ", args :("
 		+ argStr + ")]";
 
+	return str;
+}
+
+std::string ListNode::ToString()
+{
+	std::string elementStrs;
+	for (auto c : m_ElementNodes) {
+		elementStrs = elementStrs + c->ToString() + ", ";
+	}
+	elementStrs.pop_back();
+	elementStrs.pop_back();
+
+	std::string str = "(List: ["
+		+ elementStrs + "])";
 	return str;
 }

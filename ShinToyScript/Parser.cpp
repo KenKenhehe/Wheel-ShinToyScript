@@ -231,6 +231,7 @@ Node* Parser::CallStatement()
 			}
 			Advance();
 		}
+		Advance();
 		return new FunctionCallNode(atom, argNodes);
 	}
 	return atom;
@@ -244,7 +245,13 @@ Node* Parser::Atom()
 	if (currentToken.GetTokenType() == Token::TokenType::NUMBER)
 	{
 		Advance();
-		Node* result = new DataNode(currentToken.GetTokenValue());
+		Node* result = new NumberNode(currentToken.GetTokenValue());
+		return result;
+	}
+	else if (currentToken.GetTokenType() == Token::TokenType::STRING)
+	{
+		Advance();
+		Node* result = new StringNode(currentToken.GetTokenValue());
 		return result;
 	}
 	else if (currentToken.GetTokenType() == Token::TokenType::IDENTIFIER)
@@ -301,7 +308,12 @@ Node* Parser::Atom()
 		Node* funcDef = FuncDef();
 		return funcDef;
 	}
-
+	else if (currentToken.GetTokenType() == Token::TokenType::L_SQUARE) 
+	{
+		Advance();
+		Node* listExpr = ListExpr();
+		return listExpr;
+	}
 	std::string errStr = "SYNTAX ERROR: " + errorInfo;
 	throw errStr;
 }
@@ -453,9 +465,23 @@ Node* Parser::FuncDef()
 	return new FunctionDefNode(functionName, argList, expr);
 }
 
-
-
-
+Node* Parser::ListExpr()
+{
+	std::vector<Node*> elements;
+	elements.emplace_back(Expr());
+	while ((m_CurrentToken.GetTokenType() == Token::TokenType::COMMA))
+	{
+		Advance();
+		elements.emplace_back(Expr());
+	}
+	if (m_CurrentToken.GetTokenType() != Token::TokenType::R_SQUARE)
+	{
+		std::string errStr = "SYNTAX ERROR: expected ']'";
+		throw errStr;
+	}
+	Advance();
+	return new ListNode(elements);
+}
 
 void Parser::Dispose(void* obj)
 {

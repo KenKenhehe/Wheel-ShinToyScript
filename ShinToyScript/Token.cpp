@@ -36,6 +36,14 @@ std::string Token::mapToken(TokenType id)
 	{
 		return "R_PAREN";
 	}
+	else if (id == TokenType::L_SQUARE)
+	{
+		return "L_SQUARE";
+	}
+	else if (id == TokenType::R_SQUARE)
+	{
+		return "R_SQUARE";
+	}
 	else if (id == TokenType::END_OF_FILE) 
 	{
 		return "EOF";

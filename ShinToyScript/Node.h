@@ -8,10 +8,10 @@ public:
 	virtual const char* ToCstr() { return ToString().c_str(); }
 };
 
-class DataNode : public Node
+class NumberNode : public Node
 {
 public:
-	DataNode(std::string value) : m_Value(value) {}
+	NumberNode(std::string value) : m_Value(value) {}
 
 	std::string ToString() override { return m_Value; }
 
@@ -20,6 +20,27 @@ private:
 	std::string m_Value;
 };
 
+class StringNode : public Node
+{
+public:
+	StringNode(std::string value) : m_Value(value) {}
+
+	std::string ToString() override { return m_Value; }
+
+	std::string GetValue() { return m_Value; }
+private:
+	std::string m_Value;
+};
+
+class ListNode : public Node 
+{
+public:
+	ListNode(std::vector<Node*>& elementNodes) : m_ElementNodes(elementNodes){}
+	std::vector<Node*> GetElements() { return m_ElementNodes; }
+	std::string ToString() override;
+private:
+	std::vector<Node*> m_ElementNodes;
+};
 
 class AddNode : public Node
 {
@@ -222,7 +243,7 @@ public:
 		Case(Node* cond, Node* expr): expression(expr), condition(cond){}
 	};
 public:
-	IfNode(std::vector<Case> cases, Node* elseCase) : m_Cases(cases), m_ElseCase(elseCase) {}
+	IfNode(std::vector<Case>& cases, Node* elseCase) : m_Cases(cases), m_ElseCase(elseCase) {}
 
 	std::string ToString() override {
 		return GetCaseListStr();
@@ -280,7 +301,7 @@ private:
 class FunctionDefNode: public Node
 {
 public:
-	FunctionDefNode(std::string functionName, std::vector<std::string> args, Node* body):
+	FunctionDefNode(std::string functionName, std::vector<std::string>& args, Node* body):
 		m_FunctionName(functionName), m_Args(args), m_Body(body)
 	{}
 	std::string ToString() override;

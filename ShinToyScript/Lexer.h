@@ -20,7 +20,7 @@ public:
 	Token GenerateNotEqual();
 	Token GenerateGreaterThan();
 	Token GenerateLessThan();
-
+	char MapEscapeChar(char& charToMap);
 	bool IsKeyword(std::string str);
 
 	std::string ToLower(std::string str);

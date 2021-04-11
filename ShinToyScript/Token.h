@@ -17,6 +17,8 @@ public:
 		DIV,
 		L_PAREN,
 		R_PAREN,
+		L_SQUARE,
+		R_SQUARE,
 		POWER,
 		MODULUS,
 		EQU,

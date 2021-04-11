@@ -43,7 +43,7 @@ std::vector<Token> Lexer::GenerateTokens()
 			Token token = GenerateNumber();
 			tokens.emplace_back(token);
 		}
-		else if (std::string("'").find(current_char) != std::string::npos) 
+		else if (std::string("\"").find(current_char) != std::string::npos) 
 		{
 			Token token = GenerateString();
 			tokens.emplace_back(token);
@@ -76,6 +76,16 @@ std::vector<Token> Lexer::GenerateTokens()
 		else if (std::string(")").find(current_char) != std::string::npos)
 		{
 			tokens.emplace_back(Token::TokenType::R_PAREN, ")");
+			Advance();
+		}
+		else if (std::string("[").find(current_char) != std::string::npos)
+		{
+			tokens.emplace_back(Token::TokenType::L_SQUARE, "[");
+			Advance();
+		}
+		else if (std::string("]").find(current_char) != std::string::npos)
+		{
+			tokens.emplace_back(Token::TokenType::R_SQUARE, "]");
 			Advance();
 		}
 		else if (std::string("^").find(current_char) != std::string::npos) 
@@ -164,14 +174,32 @@ Token Lexer::GenerateNumber()
 
 Token Lexer::GenerateString()
 {
+	bool isEscapeChar = false;
 	std::string value;
-	while (current_char != '\0' && current_char != (char)"'") 
+	Advance();
+	while (current_char != '\0' && (current_char != '"' || isEscapeChar == true)) 
 	{
+		if (isEscapeChar) 
+		{
+			char charToAdd = MapEscapeChar(current_char);
+			value += charToAdd;
+			isEscapeChar = false;
+		}
+		else {
+			if (current_char == '\\')
+			{
+				isEscapeChar = true;
+			}
+			else
+			{
+				value += current_char;
+			}
+		}
 		Advance();
-		value += current_char;
 	}
-	value.pop_back();
-	value.pop_back();
+	//value.pop_back();
+	//value.pop_back();
+	Advance();
 	return Token(Token::TokenType::STRING, value);
 }
 
@@ -257,6 +285,23 @@ Token Lexer::GenerateLessThan()
 		return Token(Token::TokenType::LTEQ, "<=");
 	}
 	return Token(Token::TokenType::LT, "<");
+}
+
+char Lexer::MapEscapeChar(char& charToMap)
+{
+	char charToRet = charToMap;
+	switch (charToMap)
+	{
+	case 'n':
+		charToRet = '\n';
+		break;
+	case 't':
+		charToRet = '\t';
+		break;
+	default:
+		break;
+	}
+	return charToRet;
 }
 
 bool Lexer::IsKeyword(std::string str)

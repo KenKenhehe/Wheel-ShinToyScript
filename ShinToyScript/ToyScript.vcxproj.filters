@@ -39,6 +39,9 @@
     <ClCompile Include="SymbleTable.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="BuiltinFunction.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Lexer.h">
@@ -60,6 +63,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="SymbleTable.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="BuiltinFunction.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

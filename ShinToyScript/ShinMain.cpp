@@ -20,14 +20,16 @@ int main(int argc, char* argv[])
 	float i = 9;
 	float j = 9;
 
-	std::cout << "Com: " << i + j << "\n";
+	/*std::cout << "Com: " << i + j << "\n";
 	std::cout <<"Com: " << (1 < 10) << "\n";
+	std::cout << "\\" << "\n";*/
+
 	intpreter.SetSymbles();
 	std::ifstream file;
 	if (argv[1] == nullptr) 
 	{
 		// if command line argument is missing, use the defalut text file to demostrate the calculation
-		file = std::ifstream("D:\\MyOwnPL\\ShinToyScript\\ShinToyScript\\Test\\Function.sts");
+		file = std::ifstream("D:\\MyOwnPL\\ShinToyScript\\ShinToyScript\\Test\\Loop.sts");
 	}
 	else 
 	{
@@ -40,7 +42,7 @@ int main(int argc, char* argv[])
 	{
 		Execute(line);
 	}
-	delete value;
+	//delete value;
 
 #ifdef SINGLE_LINE_PROCESS
 
@@ -71,7 +73,10 @@ void Execute(const std::string& line)
 #endif // LOG_TOKEN
 
 		Node* tree = parser.Parse();
-		std::cout << tree->ToString() << "\n";
+		if (tree != nullptr)
+		{
+			std::cout << tree->ToString() << "\n";
+		}
 
 		value = intpreter.Visit(tree);
 #ifdef SHELL_COMMAND
