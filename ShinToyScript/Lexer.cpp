@@ -27,9 +27,9 @@ std::vector<Token> Lexer::GenerateTokens()
 			Advance();
 		}
 		
-		else if (std::string("\n").find(current_char) != std::string::npos)
+		else if (std::string(";\n").find(current_char) != std::string::npos)
 		{
-			tokens.emplace_back(Token::TokenType::NEW_LINE, "+");
+			tokens.emplace_back(Token::TokenType::NEW_LINE, "new line");
 			Advance();
 		}
 		else if (isalpha(current_char))

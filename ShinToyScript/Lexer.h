@@ -40,7 +40,7 @@ private:
 	std::vector<std::string> m_Keywords = 
 	{ 
 		"var", "if", "and", "or", "not", "then", "elif", "else", "for", "step", "to", "while", 
-		"function"
+		"function", "end"
 	};
 
 };

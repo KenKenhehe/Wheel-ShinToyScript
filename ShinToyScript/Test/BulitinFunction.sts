@@ -1,4 +1,5 @@
 print("hello world")
 print("hello world again")
 print("\nhello world from new line")
-input()
+var a = input("Enter something: ")
+print("you entered " + a)

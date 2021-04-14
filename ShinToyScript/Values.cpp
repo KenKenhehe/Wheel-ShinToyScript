@@ -148,12 +148,16 @@ Value* BuiltinFunctionValue::Execute(Intepreter& intepreter, SymbleTable& table,
 	//Try to reduce copying as much as possible
 	m_ArgNames.reserve(args.size());
 
-	InitFuncArgs();
+	InitFuncArgs(table);
+
 	if (args.size() < m_ArgNames.size())
 	{
-		std::string error = "Runtime Error: Too few argument(s) are passed in. Function: "
-			+ m_Value;
-		throw error;
+		if (m_HasDefault == false) 
+		{
+			std::string error = "Runtime Error: Too few argument(s) are passed in. Function: "
+				+ m_Value;
+			throw error;
+		}
 	}
 	else if (args.size() > m_ArgNames.size())
 	{
@@ -182,12 +186,19 @@ Value* BuiltinFunctionValue::Execute(Intepreter& intepreter, SymbleTable& table,
 	return retValue;
 }
 
-void BuiltinFunctionValue::InitFuncArgs()
+void BuiltinFunctionValue::InitFuncArgs(SymbleTable& table)
 {
 	m_ArgNames.clear();
 	if (m_Value == "print") 
 	{
 		m_ArgNames.emplace_back("value");
+	}
+	else if (m_Value == "input") 
+	{
+		std::string defaultArg = "value";
+		std::string none = "";
+		table.set(defaultArg, new StringValue(none));
+		m_ArgNames.emplace_back(defaultArg);
 	}
 }
 
@@ -200,6 +211,8 @@ Value* BuiltinFunctionValue::ExecutePrint(SymbleTable& table)
 
 Value* BuiltinFunctionValue::ExecuteInput(SymbleTable& table)
 {
+	std::string stringValue = table.Get("value")->GetValue();
+	std::cout << table.Get("value")->GetValue() << std::endl;
 	std::string input;
 	std::cin >> input;
 	return new StringValue(input);

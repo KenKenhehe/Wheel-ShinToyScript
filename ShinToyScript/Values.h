@@ -87,13 +87,15 @@ class BuiltinFunctionValue : public FunctionValue
 {
 	using FunctionValue::FunctionValue;
 public:
-	BuiltinFunctionValue(std::string value) :
-		FunctionValue(value, nullptr, m_ArgNames){}
+	BuiltinFunctionValue(std::string value, bool hasDefalutValue) :
+		FunctionValue(value, nullptr, m_ArgNames), m_HasDefault(hasDefalutValue){}
 
 	Value* Execute(Intepreter& intepreter, SymbleTable& table, std::vector<Value*>& args) override;
 
 	//------Builtin function executions------
-	void InitFuncArgs();
+	void InitFuncArgs(SymbleTable& table);
 	Value* ExecutePrint(SymbleTable& table);
 	Value* ExecuteInput(SymbleTable& table);
+private:
+	bool m_HasDefault;
 };

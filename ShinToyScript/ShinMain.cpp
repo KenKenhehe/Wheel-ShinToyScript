@@ -29,7 +29,7 @@ int main(int argc, char* argv[])
 	if (argv[1] == nullptr) 
 	{
 		// if command line argument is missing, use the defalut text file to demostrate the calculation
-		file = std::ifstream("D:\\MyOwnPL\\ShinToyScript\\ShinToyScript\\Test\\Loop.sts");
+		file = std::ifstream("D:\\MyOwnPL\\ShinToyScript\\ShinToyScript\\Test\\Multiline.sts");
 	}
 	else 
 	{
@@ -82,7 +82,16 @@ void Execute(const std::string& line)
 #ifdef SHELL_COMMAND
 		if (value != nullptr)
 		{
-			std::cout <<">>>"<< value->GetValue() << "\n\n";
+			if (((ListValue*)value)->GetValueElements().size() <= 1) 
+			{
+				std::cout << ">>>" << 
+					((ListValue*)value)->GetValueElements()[0]->GetValue() 
+					<< "\n\n";
+			}
+			else
+			{
+				std::cout << ">>>" << value->GetValue() << "\n\n";
+			}
 		}
 #endif // SHELL_COMMAND
 		delete tree;

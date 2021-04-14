@@ -9,8 +9,8 @@ void Intepreter::SetSymbles()
 	symbles.set(std::string("true"), new NumberValue(1));
 	symbles.set(std::string("false"), new NumberValue(0));
 
-	symbles.set(std::string("print"), new BuiltinFunctionValue(std::string("print")));
-	symbles.set(std::string("input"), new BuiltinFunctionValue(std::string("input")));
+	symbles.set(std::string("print"), new BuiltinFunctionValue(std::string("print"), false));
+	symbles.set(std::string("input"), new BuiltinFunctionValue(std::string("input"), true));
 }
 
 
