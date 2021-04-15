@@ -430,6 +430,8 @@ Node* Parser::IfExpr()
 	}
 	else 
 	{
+		Node* expr = Expr();
+		cases.emplace_back(condition, expr);
 		while (m_CurrentToken.Match(Token::TokenType::KEYWORD, "elif"))
 		{
 			Advance();

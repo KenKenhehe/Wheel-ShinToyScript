@@ -29,7 +29,7 @@ int main(int argc, char* argv[])
 	if (argv[1] == nullptr) 
 	{
 		// if command line argument is missing, use the defalut text file to demostrate the calculation
-		file = std::ifstream("D:\\MyOwnPL\\ShinToyScript\\ShinToyScript\\Test\\Multiline.sts");
+		file = std::ifstream("C:\\SelfLang\\ShinToyScript\\ShinToyScript\\Test\\Multiline.sts");
 	}
 	else 
 	{
