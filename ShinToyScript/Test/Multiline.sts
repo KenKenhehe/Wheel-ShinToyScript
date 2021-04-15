@@ -1,2 +1,3 @@
-if 5 == 5 then; print("math");print("works");else; print("broken");
+if 5 == 5 then; print("math") end
+if 5 == 5 then; print("math");print("works");else; print("broken"); end; print("Finished")
 if 5 == 5 then print("math") else print("broken")

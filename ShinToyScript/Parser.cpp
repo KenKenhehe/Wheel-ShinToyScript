@@ -397,34 +397,56 @@ Node* Parser::IfExpr()
 	{
 		Node* statements = Statements();
 		cases.emplace_back(condition, statements);
-		while (m_CurrentToken.Match(Token::TokenType::KEYWORD, "elif"))
+		if (m_CurrentToken.Match(Token::TokenType::KEYWORD, "end")) 
 		{
 			Advance();
-			Node* condition = Expr();
-			if (m_CurrentToken.Match(Token::TokenType::KEYWORD, "then") == false)
-			{
-				std::string errStr = "SYNTAX ERROR: expected 'then' after if statement";
-				throw errStr;
-			}
-			Advance();
-			if (m_CurrentToken.GetTokenType() == Token::TokenType::NEW_LINE) 
-			{
-				Node* statements = Statements();
-				cases.emplace_back(condition, statements);
-			}
 		}
-
-		if (m_CurrentToken.Match(Token::TokenType::KEYWORD, "else"))
+		else
 		{
-			Advance();
-			
-			if (m_CurrentToken.GetTokenType() == Token::TokenType::NEW_LINE) 
+			while (m_CurrentToken.Match(Token::TokenType::KEYWORD, "elif"))
 			{
-				elseCase = Statements();
+				Advance();
+				Node* condition = Expr();
+				if (m_CurrentToken.Match(Token::TokenType::KEYWORD, "then") == false)
+				{
+					std::string errStr = "SYNTAX ERROR: expected 'then' after if statement";
+					throw errStr;
+				}
+				Advance();
+				if (m_CurrentToken.GetTokenType() == Token::TokenType::NEW_LINE)
+				{
+					Node* statements = Statements();
+					cases.emplace_back(condition, statements);
+				}
+			}
+			if (m_CurrentToken.Match(Token::TokenType::KEYWORD, "end"))
+			{
+				Advance();
 			}
 			else 
 			{
-				elseCase = Expr();
+				if (m_CurrentToken.Match(Token::TokenType::KEYWORD, "else"))
+				{
+					Advance();
+
+					if (m_CurrentToken.GetTokenType() == Token::TokenType::NEW_LINE)
+					{
+						elseCase = Statements();
+					}
+					else
+					{
+						elseCase = Expr();
+					}
+					if (m_CurrentToken.Match(Token::TokenType::KEYWORD, "end")) 
+					{
+						Advance();
+					}
+					else
+					{
+						std::string errStr = "SYNTAX ERROR: expected 'end' ";
+						throw errStr;
+					}
+				}
 			}
 		}
 	}
@@ -453,35 +475,8 @@ Node* Parser::IfExpr()
 	}
 	return new IfNode(cases, elseCase);
 
-	/*CasesAndElseCase casesAndElseCase = IfExprCases(std::string("if"));
-	std::vector<IfNode::Case> cases = casesAndElseCase.cases;
-	Node* elseCase = casesAndElseCase.elseCase;
 
-	Node* condition = Expr();
-	if (m_CurrentToken.Match(Token::TokenType::KEYWORD, "then") == false)
-	{
-		std::string errStr = "SYNTAX ERROR: expected 'then' after if statement";
-		throw errStr;
-	}
-	Advance();
-
-	if (m_CurrentToken.GetTokenType() == Token::TokenType::NEW_LINE) 
-	{
-		Advance();
-		Node* statements = Statements();
-		cases.emplace_back(condition, statements);
-		if (m_CurrentToken.Match(Token::TokenType::KEYWORD, "end")) 
-		{
-			Advance();
-
-		}
-	}
-	else
-	{
-
-	}
-
-	return new IfNode(cases, elseCase);*/
+	//return new IfNode(cases, elseCase);*/
 
 	// ------------------Oringinal implementation------------------
 
@@ -516,7 +511,6 @@ Node* Parser::IfExpr()
 		elseCase = Expr();
 
 	}*/
-	
 }
 
 
