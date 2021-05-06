@@ -8,6 +8,18 @@ public:
 	virtual const char* ToCstr() { return ToString().c_str(); }
 };
 
+class BreakNode : public Node
+{
+public:
+	std::string ToString() override { return "Break"; }
+};
+
+class ContinueNode : public Node
+{
+public:
+	std::string ToString() override { return "Continue"; }
+};
+
 class NumberNode : public Node
 {
 public:
@@ -32,10 +44,10 @@ private:
 	std::string m_Value;
 };
 
-class ListNode : public Node 
+class ListNode : public Node
 {
 public:
-	ListNode(std::vector<Node*>& elementNodes) : m_ElementNodes(elementNodes){}
+	ListNode(std::vector<Node*>& elementNodes) : m_ElementNodes(elementNodes) {}
 	std::vector<Node*> GetElements() { return m_ElementNodes; }
 	std::string ToString() override;
 private:
@@ -114,7 +126,7 @@ public:
 	Node* GetRight() { return m_Right; }
 
 	std::string ToString() override { return "(" + m_Left->ToString() + " % " + m_Right->ToString() + ")"; }
-	
+
 private:
 	Node* m_Left;
 	Node* m_Right;
@@ -137,7 +149,7 @@ public:
 	MinusNode(Node* node) : m_Node(node) {}
 
 	std::string ToString() override { return "(-" + m_Node->ToString() + ")"; }
-	
+
 	Node* GetNode() { return m_Node; }
 private:
 	Node* m_Node;
@@ -153,7 +165,7 @@ public:
 	Node* GetRight() { return m_Right; }
 
 	std::string ToString() override { return "(" + m_Left->ToString() + " ^ " + m_Right->ToString() + ")"; }
-	
+
 private:
 	Node* m_Left;
 	Node* m_Right;
@@ -165,18 +177,18 @@ public:
 	VarAssignNode(std::string varName, Node* right) :
 		m_VarName(varName), m_Right(right) {}
 
-	VarAssignNode(Node* leftValue, Node* right): 
+	VarAssignNode(Node* leftValue, Node* right) :
 		m_LeftValue(leftValue), m_Right(right) {}
 
-	std::string ToString() override 
-	{ 
-		if(m_VarName.empty() == false)
-			return "(" + m_VarName + " = " + m_Right->ToString() + ")"; 
+	std::string ToString() override
+	{
+		if (m_VarName.empty() == false)
+			return "(" + m_VarName + " = " + m_Right->ToString() + ")";
 		else
 			return "(" + m_Right->ToString() + " = " + m_Right->ToString() + ")";
 
 	}
-	
+
 	std::string GetVarName() { return m_VarName; }
 	Node* GetRight() { return m_Right; }
 
@@ -196,7 +208,7 @@ public:
 	VarAccessNode(std::string varName) : m_VarName(varName) {}
 
 	std::string ToString() override { return m_VarName; }
-	
+
 	std::string GetVarName() { return m_VarName; }
 private:
 	std::string m_VarName;
@@ -209,21 +221,44 @@ public:
 	NotNode(Node* node) : m_Node(node) {}
 
 	std::string ToString() override { return "(not " + m_Node->ToString() + ")"; }
-	
+
 	Node* GetNode() { return m_Node; }
 private:
 	Node* m_Node;
+};
+
+class ReturnNode : public Node
+{
+public:
+	ReturnNode(Node* exprToRet) : m_ExprToReturn(exprToRet) {}
+
+	std::string ToString() override 
+	{ 
+		if (m_ExprToReturn != nullptr) 
+		{
+			return "Node to return: " + m_ExprToReturn->ToString();
+		}
+		else
+		{
+			return "None";
+		}
+	}
+	Node* GetExptToReturn() { return m_ExprToReturn; }
+
+private:
+	Node* m_ExprToReturn;
 };
 
 class CompareNode : public Node
 {
 public:
 	CompareNode(Node* leftNode, std::string op, Node* rightNode) :
-		m_LeftNode(leftNode),  m_RightNode(rightNode), m_Op(op) {}
+		m_LeftNode(leftNode), m_RightNode(rightNode), m_Op(op) {}
 
-	std::string ToString() override { 
-		return "(" + m_LeftNode->ToString() + " " + m_Op + " " + m_RightNode->ToString() + ")"; }
-	
+	std::string ToString() override {
+		return "(" + m_LeftNode->ToString() + " " + m_Op + " " + m_RightNode->ToString() + ")";
+	}
+
 	Node* GetLeft() { return m_LeftNode; }
 	Node* GetRight() { return m_RightNode; }
 	std::string GetOp() { return m_Op; }
@@ -233,14 +268,14 @@ private:
 	std::string m_Op;
 };
 
-class IfNode : public Node 
+class IfNode : public Node
 {
-public: 
+public:
 	struct Case
 	{
 		Node* condition;
 		Node* expression;
-		Case(Node* cond, Node* expr): expression(expr), condition(cond){}
+		Case(Node* cond, Node* expr) : expression(expr), condition(cond) {}
 	};
 public:
 	IfNode(std::vector<Case>& cases, Node* elseCase) : m_Cases(cases), m_ElseCase(elseCase) {}
@@ -248,7 +283,7 @@ public:
 	std::string ToString() override {
 		return GetCaseListStr();
 	}
-	
+
 	std::string GetCaseListStr();
 	std::vector<Case> GetCases() { return m_Cases; };
 	Node* GetElseCase() { return m_ElseCase; }
@@ -258,16 +293,16 @@ private:
 	Node* m_ElseCase;
 };
 
-class ForNode : public Node 
+class ForNode : public Node
 {
 public:
-	ForNode(std::string varNameNode, Node* startNode, Node* endNode, Node* stepNode, Node* expression):
-		m_VarName(varNameNode), m_StartNode(startNode), m_EndNode(endNode), 
-		m_StepNode(stepNode), m_Expression(expression){}
+	ForNode(std::string varNameNode, Node* startNode, Node* endNode, Node* stepNode, Node* expression) :
+		m_VarName(varNameNode), m_StartNode(startNode), m_EndNode(endNode),
+		m_StepNode(stepNode), m_Expression(expression) {}
 
 	//TODO: Implement proper tostring method
 	std::string ToString() override;
-	std::string GetVarName(){ return m_VarName; }
+	std::string GetVarName() { return m_VarName; }
 	Node* GetStart() { return m_StartNode; }
 	Node* GetEnd() { return m_EndNode; }
 	Node* GetStep() { return m_StepNode; }
@@ -281,11 +316,11 @@ private:
 	Node* m_Expression;
 };
 
-class WhileNode : public Node 
+class WhileNode : public Node
 {
 public:
-	WhileNode(Node* condition, Node* expression): 
-		m_Condition(condition), m_Expression(expression){}
+	WhileNode(Node* condition, Node* expression) :
+		m_Condition(condition), m_Expression(expression) {}
 	////TODO: Implement proper tostring method
 	std::string ToString() override {
 		return "Condition: " + m_Condition->ToString() + ", expression: " + m_Expression->ToString();
@@ -298,27 +333,30 @@ private:
 	Node* m_Expression;
 };
 
-class FunctionDefNode: public Node
+class FunctionDefNode : public Node
 {
 public:
-	FunctionDefNode(std::string functionName, std::vector<std::string>& args, Node* body):
-		m_FunctionName(functionName), m_Args(args), m_Body(body)
+	FunctionDefNode(std::string functionName, std::vector<std::string>& args, Node* body,
+		bool shouldAutoReturn) :
+		m_FunctionName(functionName), m_Args(args), m_Body(body), m_ShouldAutoReturn(shouldAutoReturn)
 	{}
 	std::string ToString() override;
 	std::string GetFunctionName() { return m_FunctionName; }
 	std::vector<std::string> GetArgs() { return m_Args; }
 	Node* GetBody() { return m_Body; }
+	bool GetAutoReturn() { return m_ShouldAutoReturn; }
 private:
 	std::string m_FunctionName;
 	std::vector<std::string> m_Args;
 	Node* m_Body;
+	bool m_ShouldAutoReturn;
 };
 
-class FunctionCallNode : public Node 
+class FunctionCallNode : public Node
 {
 public:
-	FunctionCallNode(Node* nodeToCall, std::vector<Node*> argNodes): 
-		m_NodeToCall(nodeToCall), m_ArgNodes(argNodes){}
+	FunctionCallNode(Node* nodeToCall, std::vector<Node*> argNodes) :
+		m_NodeToCall(nodeToCall), m_ArgNodes(argNodes) {}
 	std::string ToString() override;
 	Node* GetNodeToCall() { return m_NodeToCall; }
 	std::vector<Node*> GetArgNodes() { return m_ArgNodes; }
@@ -326,3 +364,4 @@ private:
 	Node* m_NodeToCall;
 	std::vector<Node*> m_ArgNodes;
 };
+

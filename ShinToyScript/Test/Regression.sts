@@ -35,7 +35,6 @@ input()
 1 < 1
 1 <= 1
 1 < 2
-
 1 <= 2 and 1 == 1 and not 2 == 2 or 0
 function add(a, b) => a + b
 function minus(a, b) => a - b

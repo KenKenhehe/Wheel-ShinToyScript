@@ -18,6 +18,7 @@ public:
 	Node* Parse();
 
 	Node* Statements();
+	Node* SingleStatement();
 	Node* Expr();
 	Node* ComExpr();
 	Node* ArthExpr();
@@ -26,13 +27,8 @@ public:
 	Node* Power();
 	Node* CallStatement();
 	Node* Atom();
-
-	Node* IfExprElseIfCase();
-	Node* IfExprElseCase();
-
 	Node* IfExpr();
 
-	CasesAndElseCase IfExprCases(const std::string& keyword);
 
 	Node* ForExpr();
 	Node* WhileExpr();

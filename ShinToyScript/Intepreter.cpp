@@ -11,17 +11,19 @@ void Intepreter::SetSymbles()
 
 	symbles.set(std::string("print"), new BuiltinFunctionValue(std::string("print"), false));
 	symbles.set(std::string("input"), new BuiltinFunctionValue(std::string("input"), true));
+	NullValue = symbles.Get("null");
 }
 
 
 
-Value* Intepreter::Visit(Node* node)
+RunTimeResult Intepreter::Visit(Node* node)
 {
 	if (node == nullptr)
 	{
-		return nullptr;
+		return RunTimeResult();
 	}
 	const char* str = typeid(*node).name();
+
 	if (strcmp(str, "class NumberNode") == 0)
 	{
 		return VisitNumberNode(node);
@@ -30,7 +32,7 @@ Value* Intepreter::Visit(Node* node)
 	{
 		return VisitStringNode(node);
 	}
-	else if (strcmp(str, "class ListNode") == 0) 
+	else if (strcmp(str, "class ListNode") == 0)
 	{
 		return VisitListNode(node);
 	}
@@ -97,7 +99,7 @@ Value* Intepreter::Visit(Node* node)
 	{
 		return VisitWhileNode(node);
 	}
-	else if (strcmp(str, "class FunctionDefNode") == 0) 
+	else if (strcmp(str, "class FunctionDefNode") == 0)
 	{
 		return VisitFuncDefNode(node);
 	}
@@ -105,35 +107,56 @@ Value* Intepreter::Visit(Node* node)
 	{
 		return VisitCallNode(node);
 	}
+	else if (strcmp(str, "class ReturnNode") == 0)
+	{
+		return VisitReturnNode(node);
+	}
+	else if (strcmp(str, "class ContinueNode") == 0)
+	{
+		return VisitContinueNode(node);
+	}
+	else if (strcmp(str, "class BreakNode") == 0)
+	{
+		return VisitBreakNode(node);
+	}
 
 	std::string errStr = "MATH ERROR: " + errorInfo;
 	throw errStr;
 }
 
-Value* Intepreter::VisitNumberNode(Node* node)
+RunTimeResult Intepreter::VisitNumberNode(Node* node)
 {
+	RunTimeResult rt;
+
 	float value = std::stof(((NumberNode*)node)->GetValue());
 	Value* num = new NumberValue(value);
-	return num;
+	rt.value = num;
+	return rt;
 }
 
-Value* Intepreter::VisitStringNode(Node* node)
+RunTimeResult Intepreter::VisitStringNode(Node* node)
 {
+	RunTimeResult rt;
 	std::string value = ((NumberNode*)node)->GetValue();
-	Value* num = new StringValue(value);
-	return num;
+	Value* str = new StringValue(value);
+	rt.value = str;
+
+	return rt;
 }
 
-Value* Intepreter::VisitListNode(Node* node)
+RunTimeResult Intepreter::VisitListNode(Node* node)
 {
+	RunTimeResult rt;
 	std::vector<Value*> elements;
 	ListNode* listNode = (ListNode*)node;
-	for (auto element : listNode->GetElements()) 
+	for (auto element : listNode->GetElements())
 	{
-		elements.emplace_back(Visit(element));
+		elements.emplace_back(rt.AscendValue(Visit(element)));
+		if (rt.shouldReturn())
+			return rt;
 	}
-	//static ListValue valueToRet(elements);
-	return new ListValue(elements);
+	rt.value = new ListValue(elements);
+	return rt;
 }
 
 Value* Intepreter::ComputeResult(Value* left, const std::string& op, Value* right)
@@ -146,13 +169,13 @@ Value* Intepreter::ComputeResult(Value* left, const std::string& op, Value* righ
 		result = new NumberValue(computeResult);
 		return result;
 	}
-	else if (strcmp(str, "class StringValue") == 0) 
+	else if (strcmp(str, "class StringValue") == 0)
 	{
 		std::string strResult = ((StringValue*)left)->ComputeWith(op, right);
 		result = new StringValue(strResult);
 		return result;
 	}
-	else if (strcmp(str, "class ListValue") == 0) 
+	else if (strcmp(str, "class ListValue") == 0)
 	{
 		std::vector<Value*> resultList = ((ListValue*)left)->ComputeWith(op, right);
 		return new ListValue(resultList);
@@ -160,45 +183,56 @@ Value* Intepreter::ComputeResult(Value* left, const std::string& op, Value* righ
 	return nullptr;
 }
 
-Value* Intepreter::VisitAddNode(Node* node)
-{
-	Value* left = Visit(((AddNode*)node)->GetLeft());
-	Value* right = Visit(((AddNode*)node)->GetRight());
 
-	//float computeResult = ((NumberValue*)left)->ComputeWith("+", right);
+
+RunTimeResult Intepreter::VisitAddNode(Node* node)
+{
+	RunTimeResult rt;
+	Value* left = rt.AscendValue(Visit(((AddNode*)node)->GetLeft()));
+	if (rt.shouldReturn())
+		return rt;
+	Value* right = rt.AscendValue(Visit(((AddNode*)node)->GetRight()));
+	if (rt.shouldReturn())
+		return rt;
 
 	Value* result = ComputeResult(left, "+", right);
-	return result;
+	rt.value = result;
+	return rt;
 }
 
-Value* Intepreter::VisitSubtractNode(Node* node)
+RunTimeResult Intepreter::VisitSubtractNode(Node* node)
 {
+	RunTimeResult rt;
+	Value* left = Visit(((SubtractNode*)node)->GetLeft()).value;
+	if (rt.shouldReturn())
+		return rt;
+	Value* right = Visit(((SubtractNode*)node)->GetRight()).value;
+	if (rt.shouldReturn())
+		return rt;
 
-	Value* left = Visit(((SubtractNode*)node)->GetLeft());
-	Value* right = Visit(((SubtractNode*)node)->GetRight());
-
-	float computeResult = ((NumberValue*)left)->ComputeWith("-", right);
-
-
-	Value* result = new NumberValue(computeResult);
-	return result;
+	Value* result = ComputeResult(left, "-", right);
+	rt.value = result;
+	return rt;
 }
 
-Value* Intepreter::VisitMultiplyNode(Node* node)
+RunTimeResult Intepreter::VisitMultiplyNode(Node* node)
 {
-	Value* left = Visit(((MultiplyNode*)node)->GetLeft());
-	Value* right = Visit(((MultiplyNode*)node)->GetRight());
+	RunTimeResult rt;
+	Value* left = Visit(((MultiplyNode*)node)->GetLeft()).value;
+	Value* right = Visit(((MultiplyNode*)node)->GetRight()).value;
 
 	//float computeResult = ((NumberValue*)left)->ComputeWith("*", right);
 
 	Value* result = ComputeResult(left, "*", right);
-	return result;
+	rt.value = result;
+	return rt;
 }
 
-Value* Intepreter::VisitDivideNode(Node* node)
+RunTimeResult Intepreter::VisitDivideNode(Node* node)
 {
-	Value* left = Visit(((MultiplyNode*)node)->GetLeft());
-	Value* right = Visit(((MultiplyNode*)node)->GetRight());
+	RunTimeResult rt;
+	Value* left = Visit(((DivideNode*)node)->GetLeft()).value;
+	Value* right = Visit(((DivideNode*)node)->GetRight()).value;
 
 	float computeResult = ((NumberValue*)left)->ComputeWith("/", right);
 
@@ -210,86 +244,118 @@ Value* Intepreter::VisitDivideNode(Node* node)
 	}
 	else
 	{
-		return result;
+		rt.value = result;
+		return rt;
 	}
 }
 
-Value* Intepreter::VisitModulusNode(Node* node)
+RunTimeResult Intepreter::VisitModulusNode(Node* node)
 {
-	Value* left = Visit(((ModulusNode*)node)->GetLeft());
-	Value* right = Visit(((ModulusNode*)node)->GetRight());
+	RunTimeResult rt;
+	Value* left = Visit(((ModulusNode*)node)->GetLeft()).value;
+	Value* right = Visit(((ModulusNode*)node)->GetRight()).value;
 
 	float computeResult = ((NumberValue*)left)->ComputeWith("%", right);
 
 	Value* result = new NumberValue(computeResult);
-	return result;
+	rt.value = result;
+	return rt;
 }
 
-Value* Intepreter::VisitVarAccessNode(Node* node)
+RunTimeResult Intepreter::VisitVarAccessNode(Node* node)
 {
+	RunTimeResult rt;
 	std::string varName = ((VarAccessNode*)node)->GetVarName();
 	Value* result = symbles.Get(varName);
 	if (result == nullptr)
 	{
 		throw "Runtime error: '" + varName + "' is not defined";
 	}
-	return result;
+	rt.value = result;
+	return rt;
 }
 
-Value* Intepreter::VisitVarAssignNode(Node* node)
+RunTimeResult Intepreter::VisitVarAssignNode(Node* node)
 {
+	RunTimeResult rt;
 	std::string varName = ((VarAssignNode*)node)->GetVarName();
-	Value* value = Visit(((VarAssignNode*)node)->GetRight());
+	Value* value = rt.AscendValue(Visit(((VarAssignNode*)node)->GetRight()));
+	if (rt.shouldReturn())
+		return rt;
 	symbles.set(varName, value);
-	return value;
+	rt.value = value;
+	return rt;
 }
 
-Value* Intepreter::VisitNotNode(Node* node)
+RunTimeResult Intepreter::VisitNotNode(Node* node)
 {
-	Value* value = Visit(((NotNode*)node)->GetNode());
-	return new NumberValue(!std::stoi(value->GetValue()));
+	RunTimeResult rt;
+	Value* value = Visit(((NotNode*)node)->GetNode()).value;
+	if (rt.shouldReturn())
+		return rt;
+	rt.value = new NumberValue(!std::stoi(value->GetValue()));
+	return rt;
 }
 
-Value* Intepreter::VisitCompareNode(Node* node)
+RunTimeResult Intepreter::VisitCompareNode(Node* node)
 {
-	Value* leftValue = Visit(((CompareNode*)node)->GetLeft());
-	Value* rightValue = Visit(((CompareNode*)node)->GetRight());
+	RunTimeResult rt;
+	Value* leftValue = rt.AscendValue(Visit(((CompareNode*)node)->GetLeft()));
+	if (rt.shouldReturn())
+		return rt;
+	Value* rightValue = rt.AscendValue(Visit(((CompareNode*)node)->GetRight()));
+	if (rt.shouldReturn())
+		return rt;
 	std::string op = ((CompareNode*)node)->GetOp();
 
 	int result = ((NumberValue*)leftValue)->CompareTo(op, (NumberValue*)rightValue);
-	return new NumberValue(result);
+	rt.value = new NumberValue(result);
+	return rt;
 }
 
-Value* Intepreter::VisitIfNode(Node* node)
+RunTimeResult Intepreter::VisitIfNode(Node* node)
 {
+	RunTimeResult rt;
 	for (auto c : ((IfNode*)node)->GetCases())
 	{
-		Value* conditionValue = Visit(c.condition);
+		Value* conditionValue = rt.AscendValue(Visit(c.condition));
+		if (rt.shouldReturn())
+			return rt;
 		int boolValue = std::stoi(((NumberValue*)conditionValue)->GetValue());
 		if (boolValue == 1)
 		{
-			Value* expressionValue = Visit(c.expression);
-			return expressionValue;
+			Value* expressionValue = rt.AscendValue(Visit(c.expression));
+			if (rt.shouldReturn())
+				return rt;
+			rt.value = expressionValue;
+			return rt;
 		}
 	}
 	if (((IfNode*)node)->GetElseCase() != nullptr)
 	{
 		Node* elseCase = ((IfNode*)node)->GetElseCase();
-		Value* elseValue = Visit(elseCase);
-		return elseValue;
+		Value* elseValue = rt.AscendValue(Visit(elseCase));
+		if (rt.shouldReturn())
+			return rt;
+		return rt;
 	}
-	return nullptr;
+	return RunTimeResult();
 }
 
-Value* Intepreter::VisitForNode(Node* node)
-{
-	Value* startValue = Visit(((ForNode*)node)->GetStart());
-	Value* endValue = Visit(((ForNode*)node)->GetEnd());
 
+RunTimeResult Intepreter::VisitForNode(Node* node)
+{
+	RunTimeResult rt;
+	Value* startValue = rt.AscendValue(Visit(((ForNode*)node)->GetStart()));
+	Value* endValue = rt.AscendValue(Visit(((ForNode*)node)->GetEnd()));
+	if (rt.shouldReturn())
+		return rt;
 	Value* stepValue = nullptr;
 	if (((ForNode*)node)->GetStep() != nullptr)
 	{
-		stepValue = Visit(((ForNode*)node)->GetStep());
+		stepValue = rt.AscendValue(Visit(((ForNode*)node)->GetStep()));
+		if (rt.shouldReturn())
+			return rt;
 	}
 	else
 	{
@@ -310,88 +376,178 @@ Value* Intepreter::VisitForNode(Node* node)
 
 	while (condition)
 	{
-		condition = (std::stoi(stepValue->GetValue()) >= 0) ? 
+		condition = (std::stoi(stepValue->GetValue()) >= 0) ?
 			indexCount < std::stoi(endValue->GetValue())
-			: 
+			:
 			indexCount > std::stoi(endValue->GetValue());
 
 		symbles.set(((ForNode*)node)->GetVarName(), &NumberValue(indexCount));
 		indexCount += indexDiff;
-		Visit(((ForNode*)node)->GetExpression());
+		Value* value = rt.AscendValue(Visit(((ForNode*)node)->GetExpression()));
+		if (rt.shouldReturn())
+			return rt;
+		if (value->LoopShouldBreak == true)
+			break;
+
+		if (value->LoopShouldContinue == true)
+			continue;
 	}
 
-	return nullptr;
+	rt.value = NullValue;
+	return rt;
 }
 
-Value* Intepreter::VisitWhileNode(Node* node)
+RunTimeResult Intepreter::VisitWhileNode(Node* node)
 {
+	RunTimeResult rt;
+	std::vector<Value*> Elements;
 	while (true)
 	{
-		Value* condition = Visit(((WhileNode*)node)->GetCondition());
+		Value* condition = rt.AscendValue(Visit(((WhileNode*)node)->GetCondition()));
+		if (rt.shouldReturn())
+			return rt;
 		if (std::stoi(((NumberValue*)condition)->GetValue()) != 1)
 		{
 			break;
 		}
-		Visit(((WhileNode*)node)->GetExpression());
-	}
+		Value* value = rt.AscendValue(Visit(((WhileNode*)node)->GetExpression()));
+		if (rt.shouldReturn() && rt.LoopShouldBreak == false && rt.LoopShouldContinue == false)
+			return rt;
 
-	return nullptr;
+		if (rt.LoopShouldBreak == true)
+		{
+			break;
+		}
+
+		else if (rt.LoopShouldContinue == true)
+		{
+			continue;
+		}
+		Elements.emplace_back(value);
+	}
+	rt.value = new ListValue(Elements);
+	rt.Reset();
+	return rt;
 }
 
-Value* Intepreter::VisitCallNode(Node* node)
+RunTimeResult Intepreter::VisitCallNode(Node* node)
 {
+	RunTimeResult rt;
 	std::vector<Value*> args;
-	FunctionValue* valueToCall = (FunctionValue*)Visit(((FunctionCallNode*)node)->GetNodeToCall());
-
-	for (auto argNodes : ((FunctionCallNode*)node)->GetArgNodes()) 
+	FunctionValue* valueToCall = (FunctionValue*)(rt.AscendValue(Visit(((FunctionCallNode*)node)->GetNodeToCall())));
+	if (rt.shouldReturn())
+		return rt;
+	for (auto argNodes : ((FunctionCallNode*)node)->GetArgNodes())
 	{
-		args.emplace_back(Visit(argNodes));
+		args.emplace_back(rt.AscendValue(Visit(argNodes)));
+		if (rt.shouldReturn())
+			return rt;
 	}
-	return valueToCall->Execute(*this, symbles, args);
+	rt.value = valueToCall->Execute(*this, symbles, args);
+	return rt;
 }
 
-Value* Intepreter::VisitFuncDefNode(Node* node)
+RunTimeResult Intepreter::VisitFuncDefNode(Node* node)
 {
+	RunTimeResult rt;
 	std::string functionName = ((FunctionDefNode*)node)->GetFunctionName();
 	std::vector<std::string> argNames = ((FunctionDefNode*)node)->GetArgs();
 	Node* functionBody = ((FunctionDefNode*)node)->GetBody();
-	FunctionValue* functionValue = new FunctionValue(functionName, functionBody, argNames);
+	bool shouldAutoReturn = ((FunctionDefNode*)node)->GetAutoReturn();
+	FunctionValue* functionValue = new FunctionValue(functionName, functionBody, argNames, shouldAutoReturn);
 	symbles.set(functionName, functionValue);
-	return functionValue;
+	rt.value = functionValue;
+	return rt;
+}
+
+RunTimeResult Intepreter::VisitContinueNode(Node* node)
+{
+	RunTimeResult rt;
+	rt.Reset();
+	rt.LoopShouldContinue = true;
+	return rt;
+}
+
+RunTimeResult Intepreter::VisitReturnNode(Node* node)
+{
+	RunTimeResult rt;
+	if (((ReturnNode*)node)->GetExptToReturn() != nullptr)
+	{
+		Value* valueToReturn = rt.AscendValue(Visit(((ReturnNode*)node)->GetExptToReturn()));
+		if (rt.shouldReturn())
+			return rt;
+		rt.LoopShouldBreak = true;
+		rt.value = new ReturnValue(valueToReturn);
+		return rt;
+	}
+	return rt;
+}
+
+RunTimeResult Intepreter::VisitBreakNode(Node* node)
+{
+	RunTimeResult rt;
+	rt.Reset();
+	rt.LoopShouldBreak = true;
+	return rt;
 }
 
 
-
-Value* Intepreter::VisitPlusNode(Node* node)
+RunTimeResult Intepreter::VisitPlusNode(Node* node)
 {
-	std::string valueStr = Visit(((PlusNode*)node)->GetNode())->GetValue();
+	RunTimeResult rt;
+	std::string valueStr = (rt.AscendValue(Visit(((PlusNode*)node)->GetNode())))->GetValue();
+	if (rt.shouldReturn())
+		return rt;
 	float value = std::stof(valueStr);
 	Value* num = new NumberValue(value);
-	return num;
+	rt.value = num;
+	return rt;
 }
 
-Value* Intepreter::VisitMinusNode(Node* node)
+RunTimeResult Intepreter::VisitMinusNode(Node* node)
 {
-	std::string valueStr = Visit(((PlusNode*)node)->GetNode())->GetValue();
+	RunTimeResult rt;
+
+	std::string valueStr = (rt.AscendValue(Visit(((PlusNode*)node)->GetNode())))->GetValue();
+	if (rt.shouldReturn())
+		return rt;
 	float value = std::stof(valueStr);
 	Value* num = new NumberValue(-value);
-	return num;
+	rt.value = num;
+	return rt;
 }
 
-Value* Intepreter::VisitPowerNode(Node* node)
+RunTimeResult Intepreter::VisitPowerNode(Node* node)
 {
-	std::string left = Visit(((PowerNode*)node)->GetLeft())->GetValue();
-	std::string right = Visit(((PowerNode*)node)->GetRight())->GetValue();
-
+	RunTimeResult rt;
+	std::string left = rt.AscendValue(Visit(((PowerNode*)node)->GetLeft()))->GetValue();
+	if (rt.shouldReturn())
+		return rt;
+	std::string right = rt.AscendValue(Visit(((PowerNode*)node)->GetRight()))->GetValue();
+	if (rt.shouldReturn())
+		return rt;
 	float leftValue = std::stof(left);
 	float rightValue = std::stof(right);
 	Value* num = new NumberValue(pow(leftValue, rightValue));
-	return num;
+	rt.value = num;
+	return rt;
 }
 
+void RunTimeResult::Reset()
+{
+	LoopShouldBreak = false;
+	LoopShouldContinue = false;
+}
 
+Value* RunTimeResult::AscendValue(RunTimeResult result)
+{
+	LoopShouldBreak = result.LoopShouldBreak;
+	LoopShouldContinue = result.LoopShouldContinue;
+	value = result.value;
+	return value;
+}
 
-
-
-
-
+bool RunTimeResult::shouldReturn()
+{
+	return LoopShouldBreak || LoopShouldContinue;
+}

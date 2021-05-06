@@ -70,7 +70,7 @@ std::string ListNode::ToString()
 	elementStrs.pop_back();
 	elementStrs.pop_back();
 
-	std::string str = "(List: ["
-		+ elementStrs + "])";
+	std::string str = "List: ["
+		+ elementStrs + "]";
 	return str;
 }

@@ -1,0 +1,35 @@
+var i = 5 
+for x = 1 to 4 then 
+    i = i + 2
+    print(i)
+
+
+
+end
+
+function add(a, b)
+    return a + b 
+
+
+end
+
+var result = add(6,7)
+
+print("Haha")
+
+var i = 0
+
+while i < 10 then 
+    i = i + 1
+    if i == 5 then
+        continue
+    end
+
+    print(i)
+
+
+
+end
+
+print("Did something")
+print("Did something")

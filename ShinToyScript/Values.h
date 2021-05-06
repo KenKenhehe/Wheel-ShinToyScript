@@ -7,13 +7,41 @@
 class Intepreter;
 class SymbleTable;
 
+
 class Value
 {
 public:
+	bool LoopShouldBreak = false;
+	bool LoopShouldContinue = false;
 	virtual std::string ToString() = 0;
 	virtual std::string GetValue() = 0;
 	//virtual std::string GetValue() = 0;
 	//virtual float ComputeWith(const std::string& op, Value* other) = 0;
+};
+
+class ReturnValue : public Value 
+{
+public:
+	ReturnValue(Value* valueToRet) : m_ValueToRet(valueToRet){}
+	std::string ToString() { return m_ValueToRet->ToString();}
+	std::string GetValue() { return m_ValueToRet->GetValue();}
+
+private:
+	Value* m_ValueToRet;
+};
+
+class ContinueValue : public Value
+{
+public:
+	std::string ToString() { return "Continue"; }
+	std::string GetValue() { return ""; }
+};
+
+class BreakValue : public Value
+{
+public:
+	std::string ToString() { return "Break"; }
+	std::string GetValue() { return ""; }
 };
 
 class NumberValue : public Value 
@@ -69,8 +97,8 @@ private:
 class FunctionValue : public Value 
 {
 public:
-	FunctionValue(std::string& value, Node* bodyNode, std::vector<std::string>& argNames) : 
-		m_Value(value), m_BodyNode(bodyNode), m_ArgNames(argNames) {}
+	FunctionValue(std::string& value, Node* bodyNode, std::vector<std::string>& argNames, bool shouldAutoReturn) : 
+		m_Value(value), m_BodyNode(bodyNode), m_ArgNames(argNames), m_ShouldAutoReturn(shouldAutoReturn){}
 	std::string ToString() override { return "Function: " + m_Value; }
 
 	std::string GetValue() override { return m_Value; }
@@ -81,6 +109,7 @@ protected:
 	std::string m_Value;
 	Node* m_BodyNode;
 	std::vector<std::string> m_ArgNames;
+	bool m_ShouldAutoReturn;
 };
 
 class BuiltinFunctionValue : public FunctionValue 
@@ -88,7 +117,7 @@ class BuiltinFunctionValue : public FunctionValue
 	using FunctionValue::FunctionValue;
 public:
 	BuiltinFunctionValue(std::string value, bool hasDefalutValue) :
-		FunctionValue(value, nullptr, m_ArgNames), m_HasDefault(hasDefalutValue){}
+		FunctionValue(value, nullptr, m_ArgNames, false), m_HasDefault(hasDefalutValue){}
 
 	Value* Execute(Intepreter& intepreter, SymbleTable& table, std::vector<Value*>& args) override;
 

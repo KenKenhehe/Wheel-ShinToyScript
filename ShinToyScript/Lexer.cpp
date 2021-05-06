@@ -26,7 +26,10 @@ std::vector<Token> Lexer::GenerateTokens()
 		{
 			Advance();
 		}
-		
+		else if (std::string("/").find(current_char) != std::string::npos) 
+		{
+			GenerateComment();
+		}
 		else if (std::string(";\n").find(current_char) != std::string::npos)
 		{
 			tokens.emplace_back(Token::TokenType::NEW_LINE, "new line");
@@ -285,6 +288,29 @@ Token Lexer::GenerateLessThan()
 		return Token(Token::TokenType::LTEQ, "<=");
 	}
 	return Token(Token::TokenType::LT, "<");
+}
+
+void Lexer::GenerateComment()
+{
+	Advance();
+	if (current_char == '/') 
+	{
+		while (std::string(";\n").find(current_char) == std::string::npos)
+		{
+			Advance();
+		}
+	}
+	else if (current_char == '*') 
+	{
+		while (std::string("*").find(current_char) == std::string::npos)
+		{
+			Advance();
+		}
+		while (std::string("/").find(current_char) == std::string::npos)
+		{
+			Advance();
+		}
+	}
 }
 
 char Lexer::MapEscapeChar(char& charToMap)

@@ -2,50 +2,72 @@
 #include "Values.h"
 #include "Node.h"
 #include "SymbleTable.h"
+
+class RunTimeResult 
+{
+public:
+	Value* value = nullptr;
+	bool LoopShouldBreak = false;
+	bool LoopShouldContinue = false;
+
+	void Reset();
+	Value* AscendValue(RunTimeResult result);
+
+	bool shouldReturn();
+
+};
+
 class Intepreter
 {
 public:
+	Value* NullValue;
+
 	void SetSymbles();
 	void SetBuiltinFunction();
-	Value* Visit(Node* node);
+	RunTimeResult Visit(Node* node);
 
 	//----------Visit Data------------
-	Value* VisitNumberNode(Node* node);
-	Value* VisitStringNode(Node* node);
-	Value* VisitListNode(Node* node);
+	RunTimeResult VisitNumberNode(Node* node);
+	RunTimeResult VisitStringNode(Node* node);
+	RunTimeResult VisitListNode(Node* node);
 
 	//----------Visit operators------------
-	Value* VisitAddNode(Node* node);
-	Value* VisitSubtractNode(Node* node);
-	Value* VisitMultiplyNode(Node* node);
-	Value* VisitDivideNode(Node* node);
-	Value* VisitPlusNode(Node* node);
-	Value* VisitMinusNode(Node* node);
-	Value* VisitPowerNode(Node* node);
-	Value* VisitModulusNode(Node* node);
+	RunTimeResult VisitAddNode(Node* node);
+	RunTimeResult VisitSubtractNode(Node* node);
+	RunTimeResult VisitMultiplyNode(Node* node);
+	RunTimeResult VisitDivideNode(Node* node);
+	RunTimeResult VisitPlusNode(Node* node);
+	RunTimeResult VisitMinusNode(Node* node);
+	RunTimeResult VisitPowerNode(Node* node);
+	RunTimeResult VisitModulusNode(Node* node);
 
 	//----------Visit variable-------------
-	Value* VisitVarAccessNode(Node* node);
-	Value* VisitVarAssignNode(Node* node);
+	RunTimeResult VisitVarAccessNode(Node* node);
+	RunTimeResult VisitVarAssignNode(Node* node);
 
 	//----------Visit comparision----------
-	Value* VisitNotNode(Node* node);
-	Value* VisitCompareNode(Node* node);
+	RunTimeResult VisitNotNode(Node* node);
+	RunTimeResult VisitCompareNode(Node* node);
 
 	//----------If Node----------
-	Value* VisitIfNode(Node* node);
+	RunTimeResult VisitIfNode(Node* node);
 
 	//----------Loop Nodes----------
-	Value* VisitForNode(Node* node);
-	Value* VisitWhileNode(Node* node);
+	RunTimeResult VisitForNode(Node* node);
+	RunTimeResult VisitWhileNode(Node* node);
 
 	//----------Function Nodes----------
-	Value* VisitCallNode(Node* node);
-	Value* VisitFuncDefNode(Node* node);
+	RunTimeResult VisitCallNode(Node* node);
+	RunTimeResult VisitFuncDefNode(Node* node);
+
+	RunTimeResult VisitContinueNode(Node* node);
+	RunTimeResult VisitReturnNode(Node* node);
+	RunTimeResult VisitBreakNode(Node* node);
+
 
 	//----------Utility-----------------
 	Value* ComputeResult(Value* left, const std::string& op, Value* right);
-
+	void ContnueOrBreak(Value* value);
 private:
 	SymbleTable symbles;
 	std::string errorInfo;

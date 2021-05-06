@@ -46,6 +46,7 @@ int NumberValue::CompareTo(const std::string& op, NumberValue* other)
 		int result = GetNumericValue() || other->GetNumericValue();
 		return result;
 	}
+	return 0;
 }
 
 float NumberValue::ComputeWith(const std::string& op, Value* other)
@@ -118,6 +119,7 @@ std::string StringValue::ComputeWith(const std::string& op, Value* other)
 
 Value* FunctionValue::Execute(Intepreter& intepreter, SymbleTable& table, std::vector<Value*>& args)
 {
+	RunTimeResult rt;
 	if (args.size() < m_ArgNames.size())
 	{
 		std::string error = "Runtime Error: Too few argument(s) are passed in. Function: "
@@ -137,10 +139,27 @@ Value* FunctionValue::Execute(Intepreter& intepreter, SymbleTable& table, std::v
 		table.set(argName, argValue);
 	}
 
-	Value* value = intepreter.Visit(m_BodyNode);
-
-	return value;
-
+	Value* value = rt.AscendValue(intepreter.Visit(m_BodyNode));
+	/*const char* str = typeid(*value).name();
+	if (strcmp(str, "class ListValue") == 0) {
+		for (auto v : ((ListValue*)value)->GetValueElements())
+		{
+			const char* str = typeid(*v).name();
+			if (strcmp(str, "class ReturnValue") == 0)
+			{
+				return value;
+			}
+		}
+	}*/
+	if (rt.shouldReturn())
+	{
+		return value;
+	}
+	else if (this->m_ShouldAutoReturn == true)
+	{
+		return value;
+	}
+	return intepreter.NullValue;
 }
 
 Value* BuiltinFunctionValue::Execute(Intepreter& intepreter, SymbleTable& table, std::vector<Value*>& args)
@@ -152,7 +171,7 @@ Value* BuiltinFunctionValue::Execute(Intepreter& intepreter, SymbleTable& table,
 
 	if (args.size() < m_ArgNames.size())
 	{
-		if (m_HasDefault == false) 
+		if (m_HasDefault == false)
 		{
 			std::string error = "Runtime Error: Too few argument(s) are passed in. Function: "
 				+ m_Value;
@@ -175,11 +194,11 @@ Value* BuiltinFunctionValue::Execute(Intepreter& intepreter, SymbleTable& table,
 	Value* retValue = nullptr;
 
 
-	if (m_Value == "print") 
+	if (m_Value == "print")
 	{
 		retValue = ExecutePrint(table);
 	}
-	else if (m_Value == "input") 
+	else if (m_Value == "input")
 	{
 		retValue = ExecuteInput(table);
 	}
@@ -189,11 +208,11 @@ Value* BuiltinFunctionValue::Execute(Intepreter& intepreter, SymbleTable& table,
 void BuiltinFunctionValue::InitFuncArgs(SymbleTable& table)
 {
 	m_ArgNames.clear();
-	if (m_Value == "print") 
+	if (m_Value == "print")
 	{
 		m_ArgNames.emplace_back("value");
 	}
-	else if (m_Value == "input") 
+	else if (m_Value == "input")
 	{
 		std::string defaultArg = "value";
 		std::string none = "";
@@ -220,15 +239,28 @@ Value* BuiltinFunctionValue::ExecuteInput(SymbleTable& table)
 
 std::string ListValue::ToString()
 {
+	if (m_ValueElements.size() == 0)
+	{
+		return "[]";
+	}
+	else if (m_ValueElements.size() == 1)
+	{
+		return m_ValueElements[0]->GetValue();
+	}
 	std::string elementStrs;
 	for (auto c : m_ValueElements) {
-		elementStrs = elementStrs + c->ToString() + ", ";
+		if(c != nullptr)
+			elementStrs = elementStrs + c->ToString() + ", ";
+		else
+		{
+			elementStrs += "(none), ";
+		}
 	}
 	elementStrs.pop_back();
 	elementStrs.pop_back();
 
-	std::string str = "(List: ["
-		+ elementStrs + "])";
+	std::string str = "List: ["
+		+ elementStrs + "]";
 	return str;
 }
 
@@ -244,20 +276,20 @@ std::vector<Value*> ListValue::ComputeWith(const std::string& op, Value* other)
 			resultList.insert(resultList.end(),
 				std::make_move_iterator(otherList.begin()),
 				std::make_move_iterator(otherList.end())
-				);
+			);
 		}
 
 		return resultList;
 	}
 
-	else if (strcmp(str, "class NumberValue") == 0) 
+	else if (strcmp(str, "class NumberValue") == 0)
 	{
 		if (op == std::string("*"))
 		{
 			std::vector<Value*> resultList = m_ValueElements;
 			int num = std::stoi(((NumberValue*)other)->GetValue());
 
-			if (num < 0) 
+			if (num < 0)
 			{
 				std::string err = "Compute error: cannot multiply list with negitive number";
 				throw err;
@@ -273,7 +305,6 @@ std::vector<Value*> ListValue::ComputeWith(const std::string& op, Value* other)
 			return resultList;
 		}
 	}
-
 	std::string err = "Compute error: cannot perform this operation between '";
 	throw err + typeid(*this).name() + "' and '" + str + "'";
 }

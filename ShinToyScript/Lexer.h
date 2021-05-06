@@ -20,6 +20,7 @@ public:
 	Token GenerateNotEqual();
 	Token GenerateGreaterThan();
 	Token GenerateLessThan();
+	void GenerateComment();
 	char MapEscapeChar(char& charToMap);
 	bool IsKeyword(std::string str);
 
@@ -40,7 +41,7 @@ private:
 	std::vector<std::string> m_Keywords = 
 	{ 
 		"var", "if", "and", "or", "not", "then", "elif", "else", "for", "step", "to", "while", 
-		"function", "end"
+		"function", "end", "continue", "return", "break"
 	};
 
 };

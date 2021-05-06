@@ -52,14 +52,14 @@ Node* Parser::Statements()
 		Advance();
 	}
 
-	Node* statement = Expr();
+	Node* statement = SingleStatement();
 
 	statements.emplace_back(statement);
 	bool moreStatement = true;
 	while (true)
 	{
 		int newlineCount = 0;
-		if (m_CurrentToken.GetTokenType() == Token::TokenType::NEW_LINE) 
+		while (m_CurrentToken.GetTokenType() == Token::TokenType::NEW_LINE) 
 		{
 			Advance();
 			newlineCount += 1;
@@ -74,9 +74,13 @@ Node* Parser::Statements()
 		}
 		int preIndex = m_CurrentIndex;
 
-		Node* statement = Expr();
-
-		if (statement == nullptr)
+		
+		Node* statement = SingleStatement();
+		if (m_CurrentToken.GetTokenType() == Token::TokenType::END_OF_FILE) 
+		{
+			continue;
+		}
+		if (statement == nullptr )
 		{
 			m_CurrentIndex = preIndex;
 			m_CurrentToken = m_Tokens[m_CurrentIndex];
@@ -87,6 +91,28 @@ Node* Parser::Statements()
 
 	}
 	return new ListNode(statements);
+}
+
+Node* Parser::SingleStatement()
+{
+	Node* expression = Expr();
+	if (m_CurrentToken.Match(Token::TokenType::KEYWORD, std::string("return"))) 
+	{
+		Advance();
+		Node* retExpr = Expr();
+		return new ReturnNode(retExpr);
+	}
+	else if (m_CurrentToken.Match(Token::TokenType::KEYWORD, std::string("continue"))) 
+	{
+		Advance();
+		return new ContinueNode();
+	}
+	else if (m_CurrentToken.Match(Token::TokenType::KEYWORD, std::string("break"))) 
+	{
+		Advance();
+		return new BreakNode();
+	}
+	return expression;
 }
 
 Node* Parser::Expr()
@@ -369,19 +395,6 @@ Node* Parser::Atom()
 	throw errStr;
 }
 
-CasesAndElseCase Parser::IfExprCases(const std::string& keyword)
-{
-	std::vector<IfNode::Case> cases;
-	Node* elseCase = nullptr;
-	if (m_CurrentToken.Match(Token::TokenType::KEYWORD, keyword) == false)
-	{
-		std::string errStr = "SYNTAX ERROR: Expected '" + keyword + "'";
-		throw errStr;
-	}
-	Advance();
-	return CasesAndElseCase();
-}
-
 Node* Parser::IfExpr()
 {
 	Node* condition = Expr();
@@ -452,25 +465,25 @@ Node* Parser::IfExpr()
 	}
 	else 
 	{
-		Node* expr = Expr();
+		Node* expr = SingleStatement();
 		cases.emplace_back(condition, expr);
 		while (m_CurrentToken.Match(Token::TokenType::KEYWORD, "elif"))
 		{
 			Advance();
-			Node* condition = Expr();
+			Node* condition = SingleStatement();
 			if (m_CurrentToken.Match(Token::TokenType::KEYWORD, "then") == false)
 			{
 				std::string errStr = "SYNTAX ERROR: expected 'then' after if statement";
 				throw errStr;
 			}
 			Advance();
-			Node* expr = Expr();
+			Node* expr = SingleStatement();
 			cases.emplace_back(condition, expr);
 		}
 		if (m_CurrentToken.Match(Token::TokenType::KEYWORD, "else"))
 		{
 			Advance();
-			elseCase = Expr();
+			elseCase = SingleStatement();
 		}
 	}
 	return new IfNode(cases, elseCase);
@@ -553,8 +566,24 @@ Node* Parser::ForExpr()
 		std::string errStr = "SYNTAX ERROR: expected 'then'";
 		throw errStr;
 	}
+	Node* body = nullptr;
 	Advance();
-	Node* body = Expr();
+	if (m_CurrentToken.GetTokenType() == Token::TokenType::NEW_LINE)
+	{
+		Advance();
+		body = Statements();
+		if (m_CurrentToken.Match(Token::TokenType::KEYWORD, "end") == false) 
+		{
+			std::string errStr = "SYNTAX ERROR: expected 'end'";
+			throw errStr;
+		}
+		Advance();
+		return new ForNode(varName, start, end, step, body);
+	}
+	else 
+	{
+		body = SingleStatement();
+	}
 	return new ForNode(varName, start, end, step, body);
 }
 
@@ -567,13 +596,28 @@ Node* Parser::WhileExpr()
 		throw errStr;
 	}
 	Advance();
-	Node* body = Expr();
+	Node* body = nullptr;
+	if (m_CurrentToken.GetTokenType() == Token::TokenType::NEW_LINE) 
+	{
+		body = Statements();
+		if (m_CurrentToken.Match(Token::TokenType::KEYWORD, "end") == false)
+		{
+			std::string errStr = "SYNTAX ERROR: expected 'end'";
+			throw errStr;
+		}
+		Advance();
+		return new WhileNode(condition, body);
+	}
+	
+	body = SingleStatement();
+	
 
 	return new WhileNode(condition, body);
 }
 
 Node* Parser::FuncDef()
 {
+	bool shouldAutoReturn = false;
 	std::vector<std::string> argList;
 	std::string functionName = "<None>";
 	if (m_CurrentToken.GetTokenType() == Token::TokenType::IDENTIFIER)
@@ -613,14 +657,31 @@ Node* Parser::FuncDef()
 		throw errStr;
 	}
 	Advance();
-	if (m_CurrentToken.GetTokenType() != Token::TokenType::ARROW)
+	Node* body = nullptr;
+	if (m_CurrentToken.GetTokenType() == Token::TokenType::NEW_LINE) 
 	{
-		std::string errStr = "SYNTAX ERROR: expected '=>'";
-		throw errStr;
+		shouldAutoReturn = false;
+		body = Statements();
+		if (m_CurrentToken.Match(Token::TokenType::KEYWORD, "end") == false)
+		{
+			std::string errStr = "SYNTAX ERROR: expected 'end'";
+			throw errStr;
+		}
+		Advance();
+		return new FunctionDefNode(functionName, argList, body, shouldAutoReturn);
 	}
-	Advance();
-	Node* expr = Expr();
-	return new FunctionDefNode(functionName, argList, expr);
+	else 
+	{
+		shouldAutoReturn = true;
+		if (m_CurrentToken.GetTokenType() != Token::TokenType::ARROW)
+		{
+			std::string errStr = "SYNTAX ERROR: expected '=>'";
+			throw errStr;
+		}
+		Advance();
+		body = Expr();
+	}
+	return new FunctionDefNode(functionName, argList, body, shouldAutoReturn);
 }
 
 Node* Parser::ListExpr()
