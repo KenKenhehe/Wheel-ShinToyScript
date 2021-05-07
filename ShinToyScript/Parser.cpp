@@ -76,10 +76,7 @@ Node* Parser::Statements()
 
 		
 		Node* statement = SingleStatement();
-		if (m_CurrentToken.GetTokenType() == Token::TokenType::END_OF_FILE) 
-		{
-			continue;
-		}
+	
 		if (statement == nullptr )
 		{
 			m_CurrentIndex = preIndex;

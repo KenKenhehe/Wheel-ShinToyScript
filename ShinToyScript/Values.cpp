@@ -3,50 +3,54 @@
 #include "Intepreter.h"
 #include <iterator>
 #include <iostream>
-int NumberValue::CompareTo(const std::string& op, NumberValue* other)
+int NumberValue::CompareTo(const std::string& op, Value* other)
 {
-	if (op == std::string("=="))
-	{
-		int result = GetNumericValue() == other->GetNumericValue();
-		return result;
-	}
+	const char* str = typeid(*other).name();
+	if (strcmp(str, "class NumberValue") == 0) {
+		if (op == std::string("=="))
+		{
+			int result = GetNumericValue() == ((NumberValue*)other)->GetNumericValue();
+			return result;
+		}
 
-	else if (op == std::string(">="))
-	{
-		int result = GetNumericValue() >= other->GetNumericValue();
-		return result;
+		else if (op == std::string(">="))
+		{
+			int result = GetNumericValue() >= ((NumberValue*)other)->GetNumericValue();
+			return result;
+		}
+		else if (op == std::string(">"))
+		{
+			int result = GetNumericValue() > ((NumberValue*)other)->GetNumericValue();
+			return result;
+		}
+		else if (op == std::string("<="))
+		{
+			int result = GetNumericValue() <= ((NumberValue*)other)->GetNumericValue();
+			return result;
+		}
+		else if (op == std::string("<"))
+		{
+			int result = GetNumericValue() < ((NumberValue*)other)->GetNumericValue();
+			return result;
+		}
+		else if (op == std::string("!="))
+		{
+			int result = GetNumericValue() != ((NumberValue*)other)->GetNumericValue();
+			return result;
+		}
+		else if (op == std::string("and"))
+		{
+			int result = GetNumericValue() && ((NumberValue*)other)->GetNumericValue();
+			return result;
+		}
+		else if (op == std::string("or"))
+		{
+			int result = GetNumericValue() || ((NumberValue*)other)->GetNumericValue();
+			return result;
+		}
 	}
-	else if (op == std::string(">"))
-	{
-		int result = GetNumericValue() > other->GetNumericValue();
-		return result;
-	}
-	else if (op == std::string("<="))
-	{
-		int result = GetNumericValue() <= other->GetNumericValue();
-		return result;
-	}
-	else if (op == std::string("<"))
-	{
-		int result = GetNumericValue() < other->GetNumericValue();
-		return result;
-	}
-	else if (op == std::string("!="))
-	{
-		int result = GetNumericValue() != other->GetNumericValue();
-		return result;
-	}
-	else if (op == std::string("and"))
-	{
-		int result = GetNumericValue() && other->GetNumericValue();
-		return result;
-	}
-	else if (op == std::string("or"))
-	{
-		int result = GetNumericValue() || other->GetNumericValue();
-		return result;
-	}
-	return 0;
+	std::string err = "Compute error: cannot perform this operation between '";
+	throw err + typeid(*this).name() + "' and '" + str + "'";
 }
 
 float NumberValue::ComputeWith(const std::string& op, Value* other)
@@ -117,6 +121,47 @@ std::string StringValue::ComputeWith(const std::string& op, Value* other)
 	throw err + typeid(*this).name() + "' and '" + str + "'";
 }
 
+int StringValue::CompareTo(const std::string& op, Value* other)
+{
+	const char* str = typeid(*other).name();
+	if (strcmp(str, "class StringValue") == 0)
+	{
+		if (op == std::string("=="))
+		{
+			int result = GetValue() == ((StringValue*)other)->GetValue();
+			return result;
+		}
+
+		else if (op == std::string(">="))
+		{
+			int result = GetValue() >= ((StringValue*)other)->GetValue();
+			return result;
+		}
+		else if (op == std::string(">"))
+		{
+			int result = GetValue() > ((StringValue*)other)->GetValue();
+			return result;
+		}
+		else if (op == std::string("<="))
+		{
+			int result = GetValue() <= ((StringValue*)other)->GetValue();
+			return result;
+		}
+		else if (op == std::string("<"))
+		{
+			int result = GetValue() < ((StringValue*)other)->GetValue();
+			return result;
+		}
+		else if (op == std::string("!="))
+		{
+			int result = GetValue() != ((StringValue*)other)->GetValue();
+			return result;
+		}
+	}
+	std::string err = "Compute error: cannot perform this operation between '";
+	throw err + typeid(*this).name() + "' and '" + str + "'";
+}
+
 Value* FunctionValue::Execute(Intepreter& intepreter, SymbleTable& table, std::vector<Value*>& args)
 {
 	RunTimeResult rt;
@@ -140,17 +185,7 @@ Value* FunctionValue::Execute(Intepreter& intepreter, SymbleTable& table, std::v
 	}
 
 	Value* value = rt.AscendValue(intepreter.Visit(m_BodyNode));
-	/*const char* str = typeid(*value).name();
-	if (strcmp(str, "class ListValue") == 0) {
-		for (auto v : ((ListValue*)value)->GetValueElements())
-		{
-			const char* str = typeid(*v).name();
-			if (strcmp(str, "class ReturnValue") == 0)
-			{
-				return value;
-			}
-		}
-	}*/
+	
 	if (rt.shouldReturn())
 	{
 		return value;
@@ -249,7 +284,7 @@ std::string ListValue::ToString()
 	}
 	std::string elementStrs;
 	for (auto c : m_ValueElements) {
-		if(c != nullptr)
+		if (c != nullptr)
 			elementStrs = elementStrs + c->ToString() + ", ";
 		else
 		{

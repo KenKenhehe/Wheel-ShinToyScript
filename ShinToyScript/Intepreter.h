@@ -67,7 +67,7 @@ public:
 
 	//----------Utility-----------------
 	Value* ComputeResult(Value* left, const std::string& op, Value* right);
-	void ContnueOrBreak(Value* value);
+	Value* CompareResult(Value* left, const std::string& op, Value* right);
 private:
 	SymbleTable symbles;
 	std::string errorInfo;

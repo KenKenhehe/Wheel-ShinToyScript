@@ -59,7 +59,7 @@ public:
 
 	float GetNumericValue() { return m_Value; }
 
-	int CompareTo(const std::string& op, NumberValue* other);
+	int CompareTo(const std::string& op, Value* other);
 
 	float ComputeWith(const std::string& op, Value* other);
 private:
@@ -75,6 +75,8 @@ public:
 	std::string GetValue() override{ return m_Value; }
 
 	std::string ComputeWith(const std::string& op, Value* other);
+
+	int CompareTo(const std::string& op, Value* other);
 private:
 	std::string m_Value;
 };

@@ -183,6 +183,25 @@ Value* Intepreter::ComputeResult(Value* left, const std::string& op, Value* righ
 	return nullptr;
 }
 
+Value* Intepreter::CompareResult(Value* left, const std::string& op, Value* right)
+{
+	const char* str = typeid(*left).name();
+	const char* strRight = typeid(*right).name();
+	Value* result;
+	if (strcmp(str, "class NumberValue") == 0) {
+		int CompareResult = ((NumberValue*)left)->CompareTo(op, right);
+		result = new NumberValue(CompareResult);
+		return result;
+	}
+	else if (strcmp(str, "class StringValue") == 0)
+	{
+		int CompareResult = ((StringValue*)left)->CompareTo(op, right);
+		result = new NumberValue(CompareResult);
+		return result;
+	}
+	return nullptr;
+}
+
 
 
 RunTimeResult Intepreter::VisitAddNode(Node* node)
@@ -290,7 +309,7 @@ RunTimeResult Intepreter::VisitVarAssignNode(Node* node)
 RunTimeResult Intepreter::VisitNotNode(Node* node)
 {
 	RunTimeResult rt;
-	Value* value = Visit(((NotNode*)node)->GetNode()).value;
+	Value* value = rt.AscendValue(Visit(((NotNode*)node)->GetNode()));
 	if (rt.shouldReturn())
 		return rt;
 	rt.value = new NumberValue(!std::stoi(value->GetValue()));
@@ -308,8 +327,9 @@ RunTimeResult Intepreter::VisitCompareNode(Node* node)
 		return rt;
 	std::string op = ((CompareNode*)node)->GetOp();
 
-	int result = ((NumberValue*)leftValue)->CompareTo(op, (NumberValue*)rightValue);
-	rt.value = new NumberValue(result);
+	Value* result = CompareResult(leftValue, op, rightValue);
+	//((NumberValue*)leftValue)->CompareTo(op, (NumberValue*)rightValue);
+	rt.value = result;
 	return rt;
 }
 
