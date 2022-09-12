@@ -1,5 +1,6 @@
 # ShinToyScript
-A programming language extended from: https://github.com/KenKenhehe/ToyScript
+A programming language made from scratch that has a similar syntax to the BASIC programming language, 
+code is extended from: https://github.com/KenKenhehe/ToyScript
 
 # Getting started
 ---
