@@ -1,5 +1,5 @@
 # ShinToyScript
-A programming language made from scratch that has a similar syntax to the BASIC programming language, 
+A programming language made from scratch in C++ that has a similar syntax to the BASIC programming language, 
 code is extended from: https://github.com/KenKenhehe/ToyScript
 
 # Getting started
